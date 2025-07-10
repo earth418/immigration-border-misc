@@ -54,6 +54,7 @@ let data = array_data.map((w) => {
 data[0].parent = "";
 
 const width = 975, height = 610;
+const treemap_ht = 500;
 
 const root_data = d3.stratify()
     .id((d) => d.name)
@@ -64,8 +65,9 @@ root_data.sum((d) => +d.value);
 
 const root = d3.treemap()
 .tile(d3.treemapSquarify)
-.size([width, height])
+.size([width / 2, treemap_ht])
 .padding(1)
+.paddingTop((height - treemap_ht))
 (root_data);
 
 
@@ -76,8 +78,6 @@ const svg = d3.create("svg")
     .attr("height", height)
     .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
 
-// console.log(root.leaves());
-
 const leaf = svg.selectAll("g")
     .data(root.leaves())
     .attr("id", (d) => d.data.county)
@@ -85,8 +85,6 @@ const leaf = svg.selectAll("g")
         .attr("x", (d) => d.x0+10)
         .attr("y", (d) => d.y0+20)
         .attr("href", (d) => `https://google.com`)
-        
-        // .attr("target")
 
 const format = d3.format(",d");
 leaf.append("title")
@@ -99,28 +97,110 @@ leaf.append("rect")
     .attr("height", (d) => d.y1 - d.y0)
     .style("stroke","black")
     .style("fill", (d) => ["#ffe3c8", "#ffecd7"][Math.floor(Math.random() * 2)])
-    .style("fill-opacity", 0.6)
+    .style("fill-opacity", 0.9)
 
-leaf.filter(d => d.value > 50000000).append("text")
-    .attr("x", (d) => (d.x0 + d.x1) / 2.0 - (d.data.name.length) * 3.0)
+// from claude
+function wrapText(txt, text, width) {
+     text.each(function() {
+        const text = d3.select(this);
+        const words = txt.split(/\s+/);
+        const fontSize = parseFloat(text.attr("font-size")) || 10;
+        const charWidth = fontSize * 0.6; // Approximate character width
+        const maxCharsPerLine = Math.floor(width / charWidth);
+        // let tspan = text.text(null).append("tspan").attr("x", text.attr("x")).attr("y", y).attr("dy", dy + "em");
+        
+        if (maxCharsPerLine <= 0) return;
+
+        let currentLine = [];
+        let lineNumber = 0;
+        const lineHeight = 1.1;
+        const y = text.attr("y");
+        const dy = parseFloat(text.attr("dy")) || 0;
+        
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            const testLine = currentLine.length > 0 ? currentLine.join(" ") + " " + word : word;
+            
+            if (testLine.length <= maxCharsPerLine) {
+                currentLine.push(word);
+            } else {
+                if (currentLine.length > 0) {
+                    // Add current line
+                    text.append("tspan")
+                        .attr("x", text.attr("x"))
+                        .attr("y", y)
+                        .attr("dy", lineNumber * lineHeight - dy + "em")
+                        .text(currentLine.join(" "));
+                    
+                    lineNumber++;
+                    currentLine = [word];
+                } else {
+                    // Word is too long for one line, add it anyway
+                    text.append("tspan")
+                        .attr("x", text.attr("x"))
+                        .attr("y", y)
+                        .attr("dy", lineNumber * lineHeight - dy + "em")
+                        .text(word);
+                    
+                    lineNumber++;
+                }
+            }
+        }
+        
+        // Add remaining words
+        if (currentLine.length > 0) {
+            text.append("tspan")
+                .attr("x", text.attr("x"))
+                .attr("y", y)
+                .attr("dy", lineNumber * lineHeight - dy + "em")
+                .text(currentLine.join(" "));
+        }
+    });
+}
+
+function font_sizepx(d) {return ((d.value / 1000000000) * 5 + 5);}
+
+function font_size(d) {return font_sizepx(d) + "px"}
+
+function indent(d) {
+    const maxCharsPerLine = Math.floor((d.x1 - d.x0) / (font_sizepx(d) * 0.6));
+    return Math.floor(d.data.name.length / maxCharsPerLine) + 0.7;
+}
+
+leaf.filter(d => d.value > 73000000).append("text")
+    .attr("x", (d) => (d.x0 + d.x1) / 2.0 )
     .attr("y", (d) => (d.y1 + d.y0) / 2.0)
-    .selectAll("tspan")
-    .data(d => d.data.name.split(/(?=[A-Z][^A-Z])/g))
-    .enter()
-    .append("tspan")
-        // .text(d => `${d.data.name.split(/(?=[A-Z][^A-Z])/g)}`)
-        .text(d => d)
+    .attr("dy", "0.5em")
+    .attr("text-anchor", "middle")
+    .attr("font-size", font_size)
+    .attr("fill", "black")
+    .attr("font-family", "proxima-nova")
+    // .text(d => d.data.name)
+    .each(function(d) { 
+        const width = Math.max(0, Math.floor(d.x1 - d.x0) - 4);
+        wrapText(d.data.name, d3.select(this), width);
+    })
+    .filter(d => d.value > 191000000).append("tspan")
+        .text(d => `$${format(Math.floor(d.value / 1000000))} million`)
+        .attr("x", (d) => (d.x0 + d.x1) / 2.0)
+        .attr("y", (d) => (d.y1 + d.y0) / 2.0)
+        .attr("dy", (d) => indent(d) + "em")
+        // .attr("dy", (d) => (d.value < 400000000) ? "3.0em" : "1.0em")
+        .attr("font-size", font_size)
+        .attr("fill", "black")
+    // .filter(d => && ).append("tspan")
+    //     .text(d => `$${format(Math.floor(d.value / 1000000))} million`)
+    //     .attr("x", (d) => (d.x0 + d.x1) / 2.0)
+    //     .attr("y", (d) => (d.y1 + d.y0) / 2.0)
+    //     .attr("dy", "3.0em")
+    //     .attr("font-size", "8px")
+    //     .attr("fill", "black")
+
+    // .append("tspan")
+        // .text(d => `${d.data.name.split(/(?=[A-Z][^A-Z])/g).join("\n")}`)
         // .attr("x", (d) => d.x0)
         // .attr("y", (d) => d.y0)
         // .attr("text-align", "center")
-        .attr("font-size", "10px")
-        .attr("fill", "black")
-    // .append("tspan")
-    //     .text(d => `${format(d.value)}`)
-    //     .attr("x", (d) => d.x0+5)
-    //     .attr("y", (d) => d.y0+30)
-    //     .attr("font-size", "10px")
-    //     .attr("fill", "white")
     // .append("tspan")
     //     .text(d => `${d.data.state}`)
     //     .attr("x", (d) => d.x0+5)
@@ -128,7 +208,7 @@ leaf.filter(d => d.value > 50000000).append("text")
     //     .attr("font-size", "10px")
     //     .attr("fill", "white");
 
-document.getElementById("tree-container").append(svg.node());
+document.getElementById("treeice-container").append(svg.node());
 
 // const statemap = new Map(topojson.feature(us, us.objects.states)).features.map(d => [d.id, d]);
 
@@ -199,7 +279,7 @@ function transition() {
 
     const duration = 2000;
 
-    d3.select("#tree-container").transition().duration(duration).style("background-color",null);
+    d3.select("#treeice-container").transition().duration(duration).style("background-color",null);
         
     leaf.selectAll("rect").transition().duration(duration)
             .attr("height", "3px")
