@@ -271,7 +271,7 @@ function wiggle(position) {
 
 function transition() {
 
-    const duration = 2000;
+    const duration = 5000;
 
     d3.select("#treecbp-container").transition()
         .duration(duration)

@@ -261,7 +261,7 @@ function adjust(position) {
 
 function transition() {
 
-    const duration = 2000;
+    const duration = 5000;
 
     d3.select("#treeice-container").transition().duration(duration).style("background-color",null);
         

@@ -6,17 +6,19 @@ const puppeteer = require('puppeteer');
     const page = await browser.newPage();
     await page.goto("http://127.0.0.1:3000/index.html");
     
-    page.keyboard.press("d");
-    const no_frames = 4;
-    const duration_per_frame = 2000 / no_frames;
+    const no_frames = 10;
+    const duration_per_frame = 5000 / (no_frames - 1);
     let start_time = Date.now();
 
     for (let i = 0; i < no_frames; i++) {
-        let it = Date.now();
+        // let it = Date.now();
         await page.screenshot({omitBackground : true, type : "png", path : "./images/image" + i +".png"});        
-        const t = Math.max(0, duration_per_frame - (Date.now() - it));
+        const t = Math.max(0, i * duration_per_frame - (Date.now() - start_time));
+        console.log("Stalling for ", t, "ms");
         await new Promise(r => setTimeout(r, t));
         console.log(Date.now() - start_time, " elapsed");
+        if (i == 0)
+            page.keyboard.press("d");
     }
     await page.close();
 })();
