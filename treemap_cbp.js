@@ -1,4 +1,4 @@
-import us from './counties-albers-10m.json' with {type: "json"};
+import * as zll from './zipc_latlon.json' with {type: "json"};
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
 function parseCSV(str) {
@@ -55,8 +55,15 @@ data[0].parent = "";
 
 const total_width = 1920, total_height = 1080;
 
+
+// treemap1 starts at (106, 230)
+// treemap1 ends (953, 935)
+// treemap2 starts (960, 230)
+// treemap2 ends (1808, 935)
+
 const width = 975, height = 610;
-const treemap_ht = 1000;
+const treemap_ht = 935 - 230;
+const treemap_wd = 1808 - 960;
 
 const root_data = d3.stratify()
     .id((d) => d.name)
@@ -67,10 +74,10 @@ root_data.sum((d) => +d.value);
 
 const root = d3.treemap()
 .tile(d3.treemapSquarify)
-.size([total_width, treemap_ht])
+.size([treemap_wd+960, treemap_ht+230])
 .padding(0)
-.paddingTop((total_height - treemap_ht))
-.paddingLeft(total_width / 2)
+.paddingTop(230)
+.paddingLeft(960)
 (root_data);
 
 
@@ -87,7 +94,7 @@ const leaf = svg.selectAll("g")
     .join("a")
         .attr("x", (d) => d.x0+10)
         .attr("y", (d) => d.y0+20)
-        .attr("href", (d) => `https://google.com`)
+        .attr("href", (d) => `#`)
 
 const format = d3.format(",d");
 leaf.append("title")
@@ -195,63 +202,56 @@ function indent2(d) {
 document.getElementById("treecbp-container").append(svg.node());
 
 
-const countymap = new Map(topojson.feature(us, us.objects.counties).features.map(d => [d.id, d]));
+// function get_fips(w) {
+//     const county = w.county;
+//     const query = county + w.state;
+//     let fips_county = fips_data.get(query);
+//     if (query == "SKAGWAYAK")
+//         fips_county = "02230"
+//         // return countymap.get("02230");
+//     else if (fips_county) {
+//         fips_county = fips_county[6];
+//     }
+//     else {
+//         if (query == "DISTRICT OF COLUMBIADC")
+//             fips_county = "11001";
+//             // return countymap.get("11001");
+//         else if (query == "GREATER BRIDGEPORTCT" || query == "WESTERN CONNECTICUTCT" 
+//             || query == "NAUGATUCK VALLEYCT" || (w.city == "STAMFORD" && w.state == "CT"))
+//             fips_county = "09001";
+//             // return countymap.get("09001");
+//         else if (query == "SOUTHEASTERN CONNECTICUTCT") 
+//             fips_county = "09011";
+//             // return countymap.get("09011");
+//         else if (query == "SOUTH CENTRAL CONNECTICUTCT") 
+//             fips_county = "09009";
+//             // return countymap.get("09009");
+//         else if (query == "CAPITOLCT")
+//             fips_county = "09003";
+//             // return countymap.get("09003");
+//         else if ((w.city == "LAS CRUCES" || w.city == "SANTA TERESA") && w.state == "NM")
+//             fips_county = "35013";
+//             // return countymap.get("35013");
+//         else if (w.city == "NASHUA" && w.state == "NH")
+//             // return countymap.get("33011");
+//             fips_county = "33011";
+//         else if (county.endsWith("(CITY)"))
+//             fips_county = fips_data.get(county.slice(0, -7) + w.state)[6];
+//     }
+//     // console.log("query:", query, "county:", fips_county);
+//     return fips_county;
+// }
 
-const fips_data = new Map();
-// fips_text:
-//  `State Name,County Name,City Name,State Code,State FIPS Code,County Code,StCnty FIPS Code,City Code,StCntyCity FIPS Code
-parseCSV(fips_text).splice(1).forEach((w) => {
-    fips_data.set(w[1] + w[3], w);
-});
-
-let frequency = new Map();
-
-function get_fips(w) {
-    const county = w.county;
-    const query = county + w.state;
-    let fips_county = fips_data.get(query);
-    if (query == "SKAGWAYAK")
-        fips_county = "02230"
-        // return countymap.get("02230");
-    if (!fips_county) {
-        if (query == "DISTRICT OF COLUMBIADC")
-            fips_county = "11001";
-            // return countymap.get("11001");
-        else if (query == "GREATER BRIDGEPORTCT" || query == "WESTERN CONNECTICUTCT" 
-            || query == "NAUGATUCK VALLEYCT" || (w.city == "STAMFORD" && w.state == "CT"))
-            fips_county = "09001";
-            // return countymap.get("09001");
-        else if (query == "SOUTHEASTERN CONNECTICUTCT") 
-            fips_county = "09011";
-            // return countymap.get("09011");
-        else if (query == "SOUTH CENTRAL CONNECTICUTCT") 
-            fips_county = "09009";
-            // return countymap.get("09009");
-        else if (query == "CAPITOLCT")
-            fips_county = "09003";
-            // return countymap.get("09003");
-        else if ((w.city == "LAS CRUCES" || w.city == "SANTA TERESA") && w.state == "NM")
-            fips_county = "35013";
-            // return countymap.get("35013");
-        else if (w.city == "NASHUA" && w.state == "NH")
-            // return countymap.get("33011");
-            fips_county = "33011";
-        else if (county.endsWith("(CITY)"))
-            fips_county = fips_data.get(county.slice(0, -7) + w.state)[6];
-    }
-    return fips_county;
-}
-
-function datatomap(w) {
-    const fips_county = get_fips(w);
-    if (fips_county) {
-        const frq = frequency.get(fips_county);
-        frequency.set((frq == undefined) ? 1 : frq + 1);
-        return countymap.get(fips_county);
-    } else {
-        console.log(county);
-    }
-}
+// function datatomap(w) {
+//     const fips_county = get_fips(w);
+//     if (fips_county) {
+//         const frq = frequency.get(fips_county);
+//         frequency.set((frq == undefined) ? 1 : frq + 1);
+//         return countymap.get(fips_county);
+//     } else {
+//         console.log(fips_county);
+//     }
+// }
 
 function centroid(feature) {
     const path = d3.geoPath();
@@ -269,6 +269,25 @@ function wiggle(position) {
 
 // function get_radius_
 
+const projection1 = d3.geoMercator()
+    .center([-97.42011851400741, 38.56265081052521])
+    .translate([total_width / 2, total_height / 2])
+    .scale(2000)
+
+
+function location_of(zipcode) {
+    const county = zipcode.substring(0,5);
+    let loc = zll.default[county];
+    if (loc == undefined) {
+        loc = zll.default["0" + county.substring(0,4)];
+    }
+    const proj = projection1([loc[1], loc[0]]);
+    console.log(proj);
+    return proj;
+}
+
+
+
 function transition() {
 
     const duration = 5000;
@@ -279,8 +298,8 @@ function transition() {
         
     leaf.selectAll("rect").transition()
         .duration(duration)
-        .attr("height", "2px")
-        .attr("width", "2px")
+        .attr("height", "5px")
+        .attr("width", "5px")
         .attr("x", 0)
         .attr("y", 0)
         // .end().then((w) => )
@@ -289,7 +308,7 @@ function transition() {
     leaf.selectAll("text").remove();
     
     leaf.transition().duration(duration)
-        .attr("transform", d => `translate(${adjust(centroid(datatomap(d.data)))})`)
+        .attr("transform", d => `translate(${location_of(d.data.zip)})`)
    
 }
 

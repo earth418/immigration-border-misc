@@ -1,4 +1,5 @@
-import us from './counties-albers-10m.json' with {type: "json"};
+// import us from './counties-albers-10m.json' with {type: "json"};
+import * as zll from './zipc_latlon.json' with {type: "json"};
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
 function parseCSV(str) {
@@ -40,12 +41,16 @@ function parseCSV(str) {
 }
 
 
+
+
+
 const array_data = parseCSV(treemap_text);
 array_data[0] = ["origin","","","","","",""] // this is the name layer anyway
 
 let data = array_data.map((w) => {
     return {name : w[0], value: w[1], country : w[2], address: w[3], county: w[5], city: w[4], state: w[6], zip: w[7], parent: "origin"};
 });
+
 
 // thank you to 
 // https://d3-graph-gallery.com/graph/treemap_basic.html
@@ -55,8 +60,15 @@ data[0].parent = "";
 
 const total_width = 1920, total_height = 1080;
 
+// treemap1 starts at (106, 230)
+// treemap1 ends (953, 935)
+// treemap2 starts (960, 230)
+// treemap2 ends (960, 1808)
+
 const width = 975, height = 610;
-const treemap_ht = 1000;
+
+const treemap_ht = 935 - 230;
+const treemap_wd = 953 - 106;
 
 const root_data = d3.stratify()
     .id((d) => d.name)
@@ -67,9 +79,10 @@ root_data.sum((d) => +d.value);
 
 const root = d3.treemap()
 .tile(d3.treemapSquarify)
-.size([total_width / 2, treemap_ht])
+.size([treemap_wd+106, treemap_ht+230])
 .padding(0)
-.paddingTop((total_height - treemap_ht))
+.paddingTop(230)
+.paddingLeft(106)
 (root_data);
 
 
@@ -86,7 +99,7 @@ const leaf = svg.selectAll("g")
     .join("a")
         .attr("x", (d) => d.x0+10)
         .attr("y", (d) => d.y0+20)
-        .attr("href", (d) => `https://google.com`)
+        .attr("href", (d) => `#`)
 
 const format = d3.format(",d");
 leaf.append("title")
@@ -195,37 +208,43 @@ document.getElementById("treeice-container").append(svg.node());
 // const statemap = new Map(topojson.feature(us, us.objects.states)).features.map(d => [d.id, d]);
 
 
-const countymap = new Map(topojson.feature(us, us.objects.counties).features.map(d => [d.id, d]));
+// const countymap = new Map(topojson.feature(us, us.objects.counties).features.map(d => [d.id, d]));
 
-const fips_data = new Map();
+// const fips_data = new Map();
 // fips_text:
 //  `State Name,County Name,City Name,State Code,State FIPS Code,County Code,StCnty FIPS Code,City Code,StCntyCity FIPS Code
-parseCSV(fips_text).splice(1).forEach((w) => {
-    fips_data.set(w[1] + w[3], w);
-});
+// parseCSV(fips_text).splice(1).forEach((w) => {
+//     fips_data.set(w[1] + w[3], w);
+// });
 
-function datatomap(w) {
-    const county = w.county;
-    const query = county + w.state;
-    let fips_county = fips_data.get(query);
-    if (!fips_county) {
-        if (query == "DISTRICT OF COLUMBIADC")
-            return countymap.get("11001");
-        else if (query == "GREATER BRIDGEPORTCT" || query == "WESTERN CONNECTICUTCT")
-            return countymap.get("09001");
-        else if (query == "SOUTHEASTERN CONNECTICUTCT") 
-            return countymap.get("09011");
-        else if (query == "CAPITOLCT")
-            return countymap.get("09003");
-        else if (county.endsWith("(CITY)"))
-            fips_county = fips_data.get(county.slice(0, -7) + w.state);
-    }
-    if (fips_county)
-        return countymap.get(fips_county[6]);
-    else {
-        console.log(county);
-    }
-}
+// function datatomap(w) {
+//     const county = w.county;
+//     const query = county + w.state;
+//     let fips_county = fips_data.get(query);
+//     if (!fips_county) {
+//         if (query == "DISTRICT OF COLUMBIADC")
+//             return countymap.get("11001");
+//         else if (query == "GREATER BRIDGEPORTCT" || query == "WESTERN CONNECTICUTCT")
+//             return countymap.get("09001");
+//         else if (query == "SOUTHEASTERN CONNECTICUTCT") 
+//             return countymap.get("09011");
+//         else if (query == "CAPITOLCT")
+//             return countymap.get("09003");
+//         else if (county.endsWith("(CITY)"))
+//             fips_county = fips_data.get(county.slice(0, -7) + w.state);
+//     }
+//     if (fips_county)
+//         return countymap.get(fips_county[6]);
+//     else {
+//         console.log(county);
+//     }
+// }
+
+// const map_svg = d3.sele
+
+// projection1()
+
+// document.getElementById("map-container").append(d3.geoPath(projection1)(land))
 
 
 // const path = d3.geoPath();
@@ -248,7 +267,6 @@ function datatomap(w) {
 //     .attr("stroke-linejoin", "round")
 //     .attr("d", path);
 
-// document.getElementById("map-container").append(map_svg.node())
 
 function centroid(feature) {
     const path = d3.geoPath();
@@ -256,7 +274,27 @@ function centroid(feature) {
 }
 
 function adjust(position) {
-    return [position[0] * total_width / width, position[1] * total_height / height];
+    const new_pos = [position[0] * total_width / width, position[1] * total_height / height];
+    // console.log(new_pos);
+    return new_pos;
+}
+
+
+const projection1 = d3.geoMercator()
+    .center([-97.42011851400741, 38.56265081052521])
+    .translate([total_width / 2, total_height / 2])
+    .scale(2000)
+
+
+function location_of(zipcode) {
+    const county = zipcode.substring(0,5);
+    let loc = zll.default[county];
+    if (loc == undefined) {
+        loc = zll.default["0" + county.substring(0,4)];
+    }
+    const proj = projection1([loc[1], loc[0]]);
+    console.log(proj);
+    return proj;
 }
 
 function transition() {
@@ -266,15 +304,18 @@ function transition() {
     d3.select("#treeice-container").transition().duration(duration).style("background-color",null);
         
     leaf.selectAll("rect").transition().duration(duration)
-            .attr("height", "2px")
-            .attr("width", "2px")
+            .attr("height", "5px")
+            .attr("width", "5px")
             .attr("x", 0)
             .attr("y", 0)
         
     leaf.selectAll("text").remove();
     
     leaf.transition().duration(duration)
-        .attr("transform", d => `translate(${adjust(centroid(datatomap(d.data)))})`)
+    // .attr("x")
+    .attr("transform", d => `translate(${location_of(d.data.zip)})`)
+    // .attr("transform", d => `translate(${adjust(centroid(datatomap(d.data)))})`)
+        
    
 }
 
