@@ -53,8 +53,10 @@ let data = array_data.map((w) => {
 // data[0].name = "origin";
 data[0].parent = "";
 
+const total_width = 1920, total_height = 1080;
+
 const width = 975, height = 610;
-const treemap_ht = 500;
+const treemap_ht = 1000;
 
 const root_data = d3.stratify()
     .id((d) => d.name)
@@ -65,18 +67,18 @@ root_data.sum((d) => +d.value);
 
 const root = d3.treemap()
 .tile(d3.treemapSquarify)
-.size([width, treemap_ht])
-// .padding(0)
-.paddingTop((height - treemap_ht))
-.paddingLeft(width / 2)
+.size([total_width, treemap_ht])
+.padding(0)
+.paddingTop((total_height - treemap_ht))
+.paddingLeft(total_width / 2)
 (root_data);
 
 
 // Create the SVG container.
 const svg = d3.create("svg")
-    .attr("viewBox", [0, 0, width, height])
-    .attr("width", width)
-    .attr("height", height)
+    .attr("viewBox", [0, 0, total_width, total_height])
+    .attr("width", total_width)
+    .attr("height", total_height)
     .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
 
 const leaf = svg.selectAll("g")
@@ -168,27 +170,27 @@ function indent2(d) {
     return Math.floor(d.data.name.length / maxCharsPerLine) + 0.7;
 }
 
-leaf.filter(d => d.value > 293000000).append("text")
-    .attr("x", (d) => (d.x0 + d.x1) / 2.0 )
-    .attr("y", (d) => (d.y1 + d.y0) / 2.0)
-    .attr("dy", "0.5em")
-    .attr("text-anchor", "middle")
-    .attr("font-size", font_size2)
-    .attr("fill", "black")
-    .attr("font-family", "proxima-nova")
-    // .text(d => d.data.name)
-    .each(function(d) { 
-        const width = Math.max(0, Math.floor(d.x1 - d.x0) - 4);
-        wrapText(d.data.name, d3.select(this), width);
-    })
-    .filter(d => d.value > 400000000).append("tspan")
-        .text(d => `$${format(Math.floor(d.value / 1000000))} million`)
-        .attr("x", (d) => (d.x0 + d.x1) / 2.0)
-        .attr("y", (d) => (d.y1 + d.y0) / 2.0)
-        .attr("dy", (d) => indent2(d) + "em")
-        // .attr("dy", (d) => (d.value < 400000000) ? "3.0em" : "1.0em")
-        .attr("font-size", font_size2)
-        .attr("fill", "black")
+// leaf.filter(d => d.value > 293000000).append("text")
+//     .attr("x", (d) => (d.x0 + d.x1) / 2.0 )
+//     .attr("y", (d) => (d.y1 + d.y0) / 2.0)
+//     .attr("dy", "0.5em")
+//     .attr("text-anchor", "middle")
+//     .attr("font-size", font_size2)
+//     .attr("fill", "black")
+//     .attr("font-family", "proxima-nova")
+//     // .text(d => d.data.name)
+//     .each(function(d) { 
+//         const width = Math.max(0, Math.floor(d.x1 - d.x0) - 4);
+//         wrapText(d.data.name, d3.select(this), width);
+//     })
+//     .filter(d => d.value > 400000000).append("tspan")
+//         .text(d => `$${format(Math.floor(d.value / 1000000))} million`)
+//         .attr("x", (d) => (d.x0 + d.x1) / 2.0)
+//         .attr("y", (d) => (d.y1 + d.y0) / 2.0)
+//         .attr("dy", (d) => indent2(d) + "em")
+//         // .attr("dy", (d) => (d.value < 400000000) ? "3.0em" : "1.0em")
+//         .attr("font-size", font_size2)
+//         .attr("fill", "black")
 
 document.getElementById("treecbp-container").append(svg.node());
 
@@ -202,33 +204,50 @@ parseCSV(fips_text).splice(1).forEach((w) => {
     fips_data.set(w[1] + w[3], w);
 });
 
-function datatomap(w) {
+let frequency = new Map();
+
+function get_fips(w) {
     const county = w.county;
     const query = county + w.state;
     let fips_county = fips_data.get(query);
     if (query == "SKAGWAYAK")
-        return countymap.get("02230")
+        fips_county = "02230"
+        // return countymap.get("02230");
     if (!fips_county) {
         if (query == "DISTRICT OF COLUMBIADC")
-            return countymap.get("11001");
+            fips_county = "11001";
+            // return countymap.get("11001");
         else if (query == "GREATER BRIDGEPORTCT" || query == "WESTERN CONNECTICUTCT" 
             || query == "NAUGATUCK VALLEYCT" || (w.city == "STAMFORD" && w.state == "CT"))
-            return countymap.get("09001");
+            fips_county = "09001";
+            // return countymap.get("09001");
         else if (query == "SOUTHEASTERN CONNECTICUTCT") 
-            return countymap.get("09011");
+            fips_county = "09011";
+            // return countymap.get("09011");
         else if (query == "SOUTH CENTRAL CONNECTICUTCT") 
-            return countymap.get("09009");
+            fips_county = "09009";
+            // return countymap.get("09009");
         else if (query == "CAPITOLCT")
-            return countymap.get("09003");
+            fips_county = "09003";
+            // return countymap.get("09003");
         else if ((w.city == "LAS CRUCES" || w.city == "SANTA TERESA") && w.state == "NM")
-            return countymap.get("35013");
+            fips_county = "35013";
+            // return countymap.get("35013");
         else if (w.city == "NASHUA" && w.state == "NH")
-            return countymap.get("33011");
+            // return countymap.get("33011");
+            fips_county = "33011";
         else if (county.endsWith("(CITY)"))
-            fips_county = fips_data.get(county.slice(0, -7) + w.state);
+            fips_county = fips_data.get(county.slice(0, -7) + w.state)[6];
     }
+    return fips_county;
+}
+
+function datatomap(w) {
+    const fips_county = get_fips(w);
     if (fips_county) {
-        return countymap.get(fips_county[6]);
+        const frq = frequency.get(fips_county);
+        frequency.set((frq == undefined) ? 1 : frq + 1);
+        return countymap.get(fips_county);
     } else {
         console.log(county);
     }
@@ -239,22 +258,38 @@ function centroid(feature) {
     return path.centroid(feature);
 }
 
+function adjust(position) {
+    return [position[0] * total_width / width, position[1] * total_height / height];
+}
+
+function wiggle(position) {
+    const factor = 5;
+    return position.map((w) => w + Math.random() * factor * 2 - factor);
+}
+
+// function get_radius_
+
 function transition() {
 
     const duration = 2000;
 
-    d3.select("#treecbp-container").transition().duration(duration).style("background-color",null);
+    d3.select("#treecbp-container").transition()
+        .duration(duration)
+        .style("background-color",null);
         
-    leaf.selectAll("rect").transition().duration(duration)
-            .attr("height", "3px")
-            .attr("width", "3px")
-            .attr("x", 0)
-            .attr("y", 0)
-        
+    leaf.selectAll("rect").transition()
+        .duration(duration)
+        .attr("height", "2px")
+        .attr("width", "2px")
+        .attr("x", 0)
+        .attr("y", 0)
+        // .end().then((w) => )
+
+    
     leaf.selectAll("text").remove();
     
     leaf.transition().duration(duration)
-        .attr("transform", d => `translate(${centroid(datatomap(d.data))})`)
+        .attr("transform", d => `translate(${adjust(centroid(datatomap(d.data)))})`)
    
 }
 

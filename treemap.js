@@ -53,8 +53,10 @@ let data = array_data.map((w) => {
 // data[0].name = "origin";
 data[0].parent = "";
 
+const total_width = 1920, total_height = 1080;
+
 const width = 975, height = 610;
-const treemap_ht = 500;
+const treemap_ht = 1000;
 
 const root_data = d3.stratify()
     .id((d) => d.name)
@@ -65,17 +67,17 @@ root_data.sum((d) => +d.value);
 
 const root = d3.treemap()
 .tile(d3.treemapSquarify)
-.size([width / 2, treemap_ht])
-.padding(1)
-.paddingTop((height - treemap_ht))
+.size([total_width / 2, treemap_ht])
+.padding(0)
+.paddingTop((total_height - treemap_ht))
 (root_data);
 
 
 // Create the SVG container.
 const svg = d3.create("svg")
-    .attr("viewBox", [0, 0, width, height])
-    .attr("width", width)
-    .attr("height", height)
+    .attr("viewBox", [0, 0, total_width, total_height])
+    .attr("width", total_width)
+    .attr("height", total_height)
     .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
 
 const leaf = svg.selectAll("g")
@@ -97,7 +99,7 @@ leaf.append("rect")
     .attr("height", (d) => d.y1 - d.y0)
     .style("stroke","black")
     .style("fill", (d) => ["#ffe3c8", "#ffecd7"][Math.floor(Math.random() * 2)])
-    .style("fill-opacity", 0.9)
+    .style("fill-opacity", 1.0)
 
 // from claude
 function wrapText(txt, text, width) {
@@ -167,46 +169,26 @@ function indent(d) {
     return Math.floor(d.data.name.length / maxCharsPerLine) + 0.7;
 }
 
-leaf.filter(d => d.value > 73000000).append("text")
-    .attr("x", (d) => (d.x0 + d.x1) / 2.0 )
-    .attr("y", (d) => (d.y1 + d.y0) / 2.0)
-    .attr("dy", "0.5em")
-    .attr("text-anchor", "middle")
-    .attr("font-size", font_size)
-    .attr("fill", "black")
-    .attr("font-family", "proxima-nova")
-    // .text(d => d.data.name)
-    .each(function(d) { 
-        const width = Math.max(0, Math.floor(d.x1 - d.x0) - 4);
-        wrapText(d.data.name, d3.select(this), width);
-    })
-    .filter(d => d.value > 191000000).append("tspan")
-        .text(d => `$${format(Math.floor(d.value / 1000000))} million`)
-        .attr("x", (d) => (d.x0 + d.x1) / 2.0)
-        .attr("y", (d) => (d.y1 + d.y0) / 2.0)
-        .attr("dy", (d) => indent(d) + "em")
-        // .attr("dy", (d) => (d.value < 400000000) ? "3.0em" : "1.0em")
-        .attr("font-size", font_size)
-        .attr("fill", "black")
-    // .filter(d => && ).append("tspan")
-    //     .text(d => `$${format(Math.floor(d.value / 1000000))} million`)
-    //     .attr("x", (d) => (d.x0 + d.x1) / 2.0)
-    //     .attr("y", (d) => (d.y1 + d.y0) / 2.0)
-    //     .attr("dy", "3.0em")
-    //     .attr("font-size", "8px")
-    //     .attr("fill", "black")
-
-    // .append("tspan")
-        // .text(d => `${d.data.name.split(/(?=[A-Z][^A-Z])/g).join("\n")}`)
-        // .attr("x", (d) => d.x0)
-        // .attr("y", (d) => d.y0)
-        // .attr("text-align", "center")
-    // .append("tspan")
-    //     .text(d => `${d.data.state}`)
-    //     .attr("x", (d) => d.x0+5)
-    //     .attr("y", (d) => d.y0+45)
-    //     .attr("font-size", "10px")
-    //     .attr("fill", "white");
+// leaf.filter(d => d.value > 73000000).append("text")
+//     .attr("x", (d) => (d.x0 + d.x1) / 2.0 )
+//     .attr("y", (d) => (d.y1 + d.y0) / 2.0)
+//     .attr("dy", "0.5em")
+//     .attr("text-anchor", "middle")
+//     .attr("font-size", font_size)
+//     .attr("fill", "black")
+//     .attr("font-family", "proxima-nova")
+//     // .text(d => d.data.name)
+//     .each(function(d) { 
+//         const width = Math.max(0, Math.floor(d.x1 - d.x0) - 4);
+//         wrapText(d.data.name, d3.select(this), width);
+//     })
+//     .filter(d => d.value > 191000000).append("tspan")
+//         .text(d => `$${format(Math.floor(d.value / 1000000))} million`)
+//         .attr("x", (d) => (d.x0 + d.x1) / 2.0)
+//         .attr("y", (d) => (d.y1 + d.y0) / 2.0)
+//         .attr("dy", (d) => indent(d) + "em")
+//         .attr("font-size", font_size)
+//         .attr("fill", "black")
 
 document.getElementById("treeice-container").append(svg.node());
 
@@ -246,34 +228,36 @@ function datatomap(w) {
 }
 
 
-const path = d3.geoPath();
+// const path = d3.geoPath();
 
-const map_svg = d3.create("svg")
-      .attr("width", width)
-      .attr("height", height)
-      .attr("viewBox", [0, 0, width, height])
-      .attr("style", "width: 100%; height: auto; height: intrinsic;");
+// const map_svg = d3.create("svg")
+//       .attr("width", width)
+//       .attr("height", height)
+//       .attr("viewBox", [0, 0, width, height])
+//       .attr("style", "width: 100%; height: auto; height: intrinsic;");
 
-map_svg.append("path")
-      .datum(topojson.feature(us, us.objects.nation))
-      .attr("fill", "#ddd")
-      .attr("d", path);
+// map_svg.append("path")
+//       .datum(topojson.feature(us, us.objects.nation))
+//       .attr("fill", "#ddd")
+//       .attr("d", path);
 
-map_svg.append("path")
-    .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
-    .attr("fill", "none")
-    .attr("stroke", "white")
-    .attr("stroke-linejoin", "round")
-    .attr("d", path);
+// map_svg.append("path")
+//     .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
+//     .attr("fill", "none")
+//     .attr("stroke", "white")
+//     .attr("stroke-linejoin", "round")
+//     .attr("d", path);
 
-document.getElementById("map-container").append(map_svg.node())
+// document.getElementById("map-container").append(map_svg.node())
 
 function centroid(feature) {
     const path = d3.geoPath();
     return path.centroid(feature);
 }
 
-// console.log(centroid(datatomap(d.data)))
+function adjust(position) {
+    return [position[0] * total_width / width, position[1] * total_height / height];
+}
 
 function transition() {
 
@@ -282,15 +266,15 @@ function transition() {
     d3.select("#treeice-container").transition().duration(duration).style("background-color",null);
         
     leaf.selectAll("rect").transition().duration(duration)
-            .attr("height", "3px")
-            .attr("width", "3px")
+            .attr("height", "2px")
+            .attr("width", "2px")
             .attr("x", 0)
             .attr("y", 0)
         
     leaf.selectAll("text").remove();
     
     leaf.transition().duration(duration)
-        .attr("transform", d => `translate(${centroid(datatomap(d.data))})`)
+        .attr("transform", d => `translate(${adjust(centroid(datatomap(d.data)))})`)
    
 }
 
