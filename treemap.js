@@ -44,11 +44,11 @@ function parseCSV(str) {
 
 
 
-const array_data = parseCSV(treemap_text);
-array_data[0] = ["origin","","","","","",""] // this is the name layer anyway
+const array_data = parseCSV(geocoded_ice);
+array_data[0] = ["origin","","","","","","","",""] // this is the name layer anyway
 
 let data = array_data.map((w) => {
-    return {name : w[0], value: w[1], country : w[2], address: w[3], county: w[5], city: w[4], state: w[6], zip: w[7], parent: "origin"};
+    return {name : w[0], value: w[1], country : w[2], address: w[3], county: w[5], city: w[4], state: w[6], zip: w[7], lat: w[8], lon: w[9], parent: "origin"};
 });
 
 
@@ -283,7 +283,7 @@ function adjust(position) {
 const projection1 = d3.geoMercator()
     .center([-97.42011851400741, 38.56265081052521])
     .translate([total_width / 2, total_height / 2])
-    .scale(2000)
+    .scale(1800)
 
 
 function location_of(zipcode) {
@@ -291,15 +291,17 @@ function location_of(zipcode) {
     let loc = zll.default[county];
     if (loc == undefined) {
         loc = zll.default["0" + county.substring(0,4)];
+        if (loc == undefined)
+            console.log(county);
     }
     const proj = projection1([loc[1], loc[0]]);
-    console.log(proj);
+    // console.log(proj);
     return proj;
 }
 
 function transition() {
 
-    const duration = 5000;
+    const duration = 10000;
 
     d3.select("#treeice-container").transition().duration(duration).style("background-color",null);
         
@@ -312,8 +314,8 @@ function transition() {
     leaf.selectAll("text").remove();
     
     leaf.transition().duration(duration)
-    // .attr("x")
-    .attr("transform", d => `translate(${location_of(d.data.zip)})`)
+        .attr("transform", d => `translate(${projection1([d.data.lon, d.data.lat])})`)
+    // .attr("transform", d => `translate(${location_of(d.data.zip)})`)
     // .attr("transform", d => `translate(${adjust(centroid(datatomap(d.data)))})`)
         
    
