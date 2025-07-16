@@ -272,7 +272,7 @@ function wiggle(position) {
 const projection1 = d3.geoMercator()
     .center([-97.42011851400741, 38.56265081052521])
     .translate([total_width / 2, total_height / 2])
-    .scale(1800)
+    .scale(1900)
 
 
 function location_of(zipcode) {
@@ -292,7 +292,7 @@ function location_of(zipcode) {
 
 function transition() {
 
-    const duration = 10000;
+    const duration = 20000;
 
     d3.select("#treecbp-container").transition()
         .duration(duration)

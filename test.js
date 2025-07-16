@@ -11,21 +11,28 @@ const puppeteer = require('puppeteer');
     await page.goto("http://127.0.0.1:3000/index.html");
     // await page.goto("http://127.0.0.1:5500/index.html");
     
-    const no_frames = 50;
-    const duration_per_frame = 10000 / (no_frames - 1);
+    // const no_frames = 50;
+    // const duration_per_frame = 20000 / (no_frames - 1);
+    
+    const duration = 20000;
     let start_time = Date.now();
 
-    for (let i = 0; i < no_frames; i++) {
-        // let it = Date.now();
-        const t = Math.max(0, i * duration_per_frame - (Date.now() - start_time));
-        await new Promise(r => setTimeout(r, t));
+    // for (let i = 0; i < no_frames; i++) {
+
+    // let it = Date.now();
+        // const t = Math.max(0, i * duration_per_frame - (Date.now() - start_time));
+        // await new Promise(r => setTimeout(r, t));
         // console.log("Stalling for ", t, "ms");
-        console.log(Date.now() - start_time, " elapsed");
+    let i = 0;
+    while (Date.now() - start_time < duration) {
+        console.log("Frame", i, Date.now() - start_time, "ms elapsed");
         await page.screenshot({omitBackground : true, fullPage: true, captureBeyondViewport: true, fromSurface: true, type : "png", path : "./images/image" + i +".png"});        
         if (i == 0)
             page.keyboard.press("d");
+        i++;
     }
-    await page.close();
+    // await page.close();
+    await browser.close();
 })();
 // require(["puppeteer"], (puppeteer) => {
 
