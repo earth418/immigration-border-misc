@@ -1,5 +1,5 @@
 // import us from './counties-albers-10m.json' with {type: "json"};
-import * as zll from './zipc_latlon.json' with {type: "json"};
+// import * as zll from './zipc_latlon.json' with {type: "json"};
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
 function parseCSV(str) {
@@ -268,16 +268,16 @@ document.getElementById("treeice-container").append(svg.node());
 //     .attr("d", path);
 
 
-function centroid(feature) {
-    const path = d3.geoPath();
-    return path.centroid(feature);
-}
+// function centroid(feature) {
+//     const path = d3.geoPath();
+//     return path.centroid(feature);
+// }
 
-function adjust(position) {
-    const new_pos = [position[0] * total_width / width, position[1] * total_height / height];
-    // console.log(new_pos);
-    return new_pos;
-}
+// function adjust(position) {
+//     const new_pos = [position[0] * total_width / width, position[1] * total_height / height];
+//     // console.log(new_pos);
+//     return new_pos;
+// }
 
 
 const projection1 = d3.geoMercator()
@@ -286,18 +286,18 @@ const projection1 = d3.geoMercator()
     .scale(1900)
 
 
-function location_of(zipcode) {
-    const county = zipcode.substring(0,5);
-    let loc = zll.default[county];
-    if (loc == undefined) {
-        loc = zll.default["0" + county.substring(0,4)];
-        if (loc == undefined)
-            console.log(county);
-    }
-    const proj = projection1([loc[1], loc[0]]);
-    // console.log(proj);
-    return proj;
-}
+// function location_of(zipcode) {
+//     const county = zipcode.substring(0,5);
+//     let loc = zll.default[county];
+//     if (loc == undefined) {
+//         loc = zll.default["0" + county.substring(0,4)];
+//         if (loc == undefined)
+//             console.log(county);
+//     }
+//     const proj = projection1([loc[1], loc[0]]);
+//     // console.log(proj);
+//     return proj;
+// }
 
 function transition() {
 
