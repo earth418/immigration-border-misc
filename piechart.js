@@ -1,5 +1,43 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
+function parseCSV(str) {
+    // Function written by Trevor Dixon, https://stackoverflow.com/a/14991797
+
+    const arr = [];
+    let quote = false;  // 'true' means we're inside a quoted field
+
+    // Iterate over each character, keep track of current row and column (of the returned array)
+    for (let row = 0, col = 0, c = 0; c < str.length; c++) {
+        let cc = str[c], nc = str[c+1];        // Current character, next character
+        arr[row] = arr[row] || [];             // Create a new row if necessary
+        arr[row][col] = arr[row][col] || '';   // Create a new column (start with empty string) if necessary
+
+        // If the current character is a quotation mark, and we're inside a
+        // quoted field, and the next character is also a quotation mark,
+        // add a quotation mark to the current column and skip the next character
+        if (cc == '"' && quote && nc == '"') { arr[row][col] += cc; ++c; continue; }
+
+        // If it's just one quotation mark, begin/end quoted field
+        if (cc == '"') { quote = !quote; continue; }
+
+        // If it's a comma and we're not in a quoted field, move on to the next column
+        if (cc == ',' && !quote) { ++col; continue; }
+
+        // If it's a newline (CRLF) and we're not in a quoted field, skip the next character
+        // and move on to the next row and move to column 0 of that new row
+        if (cc == '\r' && nc == '\n' && !quote) { ++row; col = 0; ++c; continue; }
+
+        // If it's a newline (LF or CR) and we're not in a quoted field,
+        // move on to the next row and move to column 0 of that new row
+        if (cc == '\n' && !quote) { ++row; col = 0; continue; }
+        if (cc == '\r' && !quote) { ++row; col = 0; continue; }
+
+        // Otherwise, append the current character to the current column
+        arr[row][col] += cc;
+    }
+    return arr;
+}
+
 const width = 900, height = 900, 
       margin = 40;
 
@@ -15,19 +53,50 @@ const svg = d3.select("#export")
     .append("g")
         .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
 
-var data = [
-    {"ICE": 4.1, "CBP": 5.4, "D":4},
-    {"ICE": 5.2, "CBP": 7.2, "D":3},
-    {"ICE": 7.2, "CBP": 8.1, "D":3},
-    {"ICE": 7.5, "CBP": 8.8, "D":4},
-    {"ICE": 8.1, "CBP": 10.5, "D":3.5},
-];
 
-data = data.map(w => {
-    w["C"] = 1;
-    w["G"] = 2;
-    return w;
+const raw_data = parseCSV(pie_data); //.shift();
+
+
+// console.log(raw_data);
+
+const data = raw_data.map((rd) => {
+    // year: w[0]
+    // immigration stuff = w[1] + w[2] + w[3] + w[4] + 0.25 * w[5]
+    // w[6] => secret service
+    // w[7] => marshals service
+    // w[8] => fbi
+    // w[9] => dea
+    // w[10] => atf
+    // w[11] => traffic safety
+    // w[12] => irs enforcement
+    // w[13] => ucsp capitol police
+    // return {immigration: w[1]+w[2]+w[3]+w[4]+0.25*w[5], 
+    let w = rd.map(parseFloat);
+    return {cbp: w[1],
+            ice: w[2],
+            uccis: w[3],
+            dhs: w[4],
+            uscg: 0.25*w[5], 
+            usss : w[6], 
+            usms : w[7], 
+            fbi : w[8], 
+            dea : w[9], 
+            atf : w[10], 
+            traffic : w[11], 
+            irs : w[12], 
+            ucsp : w[13], 
+    };
 });
+
+console.log(data);
+
+// var data = [
+//     {"ICE": 4.1, "CBP": 5.4, "D":4},
+//     {"ICE": 5.2, "CBP": 7.2, "D":3},
+//     {"ICE": 7.2, "CBP": 8.1, "D":3},
+//     {"ICE": 7.5, "CBP": 8.8, "D":4},
+//     {"ICE": 8.1, "CBP": 10.5, "D":3.5},
+// ];
 
 var arc = d3.arc()
     .innerRadius(0)
@@ -45,7 +114,7 @@ function arcTween(d) {
 }
 
 
-const IIC_arr = ["ICE","CBP"];
+const IIC_arr = ["ice","cbp","uccis","dhs","uscg"];
 
 function create_pie(data) {
     const total = data.reduce((a, b) => a + b[1], 0);
@@ -90,6 +159,8 @@ function create(data) {
         .attr("stroke", "black")
         .style("stroke-width", "2px")
         .style("opacity",1)
+        .append('span')
+            .attr('text',d => d.name);
 
     u
         .exit()
@@ -97,29 +168,31 @@ function create(data) {
     // return u;
 }
 
-let i = 0;
-let u = create(Object.entries(data[0]));
-const fp_data = 15;
+
+let yr = document.getElementById("year-label");
+yr.innerText = "2004";
+const fp_data = 2;
+let i = fp_data;
+create(Object.entries(data[1]));
 
 document.addEventListener("keydown", (e) => {
     if (e.key == "d") {
         i++;
         let data_index = Math.floor(i / fp_data);
-        if (data_index == data.length)
+        if (data_index >= data.length)
             return;
 
+        // create(data_i);
+        yr.innerText = 2004 + data_index;
+
         // Object.entries(data[data_index]).map((d, ind) => console.log(data[data_index+1][d[0]] - d[1]));
-        let data_i = Object.entries(data[data_index]).map((d, ind) => [d[0], d[1] + ((i % fp_data) / fp_data) * (data[data_index+1][d[0]] - d[1])]);
-        // console.log(data_i);
-        
-        // let data_i = create_pie(Object.entries(data[i]));
+        let data_i;
+        if (fp_data > 1)
+            data_i = Object.entries(data[data_index]).map((d, ind) => [d[0], d[1] + ((i % fp_data) / fp_data) * (data[data_index+1][d[0]] - d[1])]);
+        else
+            data_i = Object.entries(data[i]);
+    
         create(data_i);
-        // u
-        // .data(data_i)
-        // .enter()
-        // .transition(1000)
-        // .attrTween("d", arcTween)
-            // .join("d")
     }
 });
 
