@@ -6,6 +6,7 @@ import matplotlib.animation as animation
 import seaborn as sns
 import datetime as dt
 import csv
+from palette import *
 
 # Information source:
 # https://www.marketwatch.com/investing/stock/geo/download-data?startDate=8/16/2024&endDate=08/15/2025
@@ -34,24 +35,34 @@ def get_data_from(filename):
     return dates, dic
 
 dates, datas = get_data_from("STOCK_US_XNYS_GEO.csv")
-print(datas)
+# print(datas)
 
-sns.set_theme()
-sns.set_style("whitegrid")
+# sns.set_theme()
+# sns.set_style("whitegrid")
+setup_theme()
 fig, ax = plt.subplots()
 
-WINDOW_SIZE = 50
+WINDOW_SIZE = len(datas)
 
 line, = ax.plot(dates, datas)
-ax.set_xlabel("Date")
-ax.set_ylabel("GEO Group Stock Price [$]")
-ax.set_xlim(dates[0], dates[WINDOW_SIZE*2])
+# ax.set_xlabel("Date")
+# ax.set_ylabel("GEO Group Stock Price [$]")
+# ax.set_ylabel("[$]")
+ax.set_xlim(dates[0], dates[-1])
 
 # loc = pltdate.WeekdayLocator(byweekday=pltdate.MO, interval=2)
 aloc = pltdate.MonthLocator()
 ax.xaxis.set_major_locator(aloc)
-ax.xaxis.set_major_formatter(pltdate.AutoDateFormatter(aloc))
-# ax.xaxis.set_minor_locator(pltdate.AutoDateLocator())
+ax.xaxis.set_major_formatter(pltdate.DateFormatter("%m/%y"))
+ax.grid(False)
+
+ax.set_title("NYSE:GEO")
+
+ax.text(0.05,0.9,"$",transform=ax.transAxes,fontsize=12,color=PALETTE[0])
+ax.text(0.06,0.86,str(datas[0]),transform=ax.transAxes,fontsize=30,color=PALETTE[0])
+ax.text(0.05,0.82,"",transform=ax.transAxes,fontsize=8,color=PALETTE[1])
+ax.set_facecolor(PALETTE[-1])
+fig.set_facecolor(PALETTE[-2])
 
 def anim(i):
     i = i + 1
@@ -59,19 +70,38 @@ def anim(i):
     date = dates[:i]
     
     if i >= WINDOW_SIZE:
-        if i < len(datas) - WINDOW_SIZE:
-            ax.set_xlim(dates[i-WINDOW_SIZE], dates[i+WINDOW_SIZE])
-        else:
-            ax.set_xlim(dates[i-WINDOW_SIZE], dates[-1])
+        # if i < len(datas) - WINDOW_SIZE:
+        #     ax.set_xlim(dates[i-WINDOW_SIZE], dates[i+WINDOW_SIZE])
+        # else:
+        #     ax.set_xlim(dates[i-WINDOW_SIZE], dates[-1])
         data = datas[i-WINDOW_SIZE:i]
         date = dates[i-WINDOW_SIZE:i]
     
     line.set_data(date, data)
-    ax.set_ylim(min(data)-5, max(data)+5)
+    # ax.set_ylim(min(data)-5, max(data)+5)
+    
+    ax.texts[1].set_text(f'{data[-1]}')
+    if i > 30 and i < len(datas):
+        diff_lastm = datas[i] - datas[i-30]
+        if diff_lastm >= 0:
+            ax.texts[2].set_text(f'+{diff_lastm:2.2f} (+{100*diff_lastm/datas[i-30]:2.2f}%) past month')
+            ax.texts[2].set_color(PALETTE[0])
+        else:
+            ax.texts[2].set_text(f'-{-diff_lastm:2.2f} (-{-100*diff_lastm/datas[i-30]:2.2f}%) past month')
+            ax.texts[2].set_color(PALETTE[1])
         
+    # if len(ax.texts) > 0:
+    #     ax.texts[0].remove()
+    # if a is not None:
+    #     a.remove()
+    # ax.text(date[-1], data[-1], str(data[-1]))
+    
     return line,
 
 
-a = animation.FuncAnimation(fig, anim, blit=False, frames=len(datas)+1, interval=100)
-a.save("stocks.gif",dpi=300, savefig_kwargs={"transparent": True})
-# plt.show()
+# anim(60)
+# fig.savefig("testing.png",dpi=300)
+a = animation.FuncAnimation(fig, anim, blit=False, frames=len(datas), interval=100)
+# a.save("stocks.gif",dpi=300, savefig_kwargs={"transparent": True})
+a.save("stocks_notransparent.mp4",dpi=300)
+plt.show()
