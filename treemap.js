@@ -301,7 +301,7 @@ const projection1 = d3.geoMercator()
 
 function transition() {
 
-    const duration = 20000;
+    const duration = 40000;
 
     d3.select("#treeice-container").transition().duration(duration).style("background-color",null);
         

@@ -74,17 +74,17 @@ const data = raw_data.map((rd) => {
     let w = rd.map(parseFloat);
     return {cbp: w[1],
             ice: w[2],
-            uccis: w[3],
-            dhs: w[4],
+            // uccis: w[3],
+            // dhs: w[4],
             uscg: 0.25*w[5], 
             usss : w[6], 
             usms : w[7], 
             fbi : w[8], 
             dea : w[9], 
             atf : w[10], 
-            traffic : w[11], 
-            irs : w[12], 
-            ucsp : w[13], 
+            // traffic : w[11], 
+            // irs : w[12], 
+            // ucsp : w[13], 
     };
 });
 
@@ -115,13 +115,38 @@ function arcTween(d) {
 
 
 const IIC_arr = ["ice","cbp","uccis","dhs","uscg"];
+// const IIC_color = w => ["#fee5a0", "#ffcf52", "#ffb803"][Math.floor(w.name.charCodeAt(1)) % 3];
+const colors = {
+    "fbi":"#004d65",
+    "dea":"#66a4b7",
+    "usms":"#abe9fd",
+    "atf":"#c38b57ff",
+    "usss":"#9f7146ff",
+    "uscg":"#dac3ad",
+    "ice":"#ffb803",
+    "cbp":"#fee5a0"
+};
+
+const order = ["fbi","dea","usms",
+    "atf","usss","uscg","cbp","ice"];
 
 function create_pie(data) {
     const total = data.reduce((a, b) => a + b[1], 0);
     const total_IIC = data.reduce((a, b) => a + (IIC_arr.includes(b[0])) * b[1], 0);
     console.log(data);
     let last_end = 0;
-    const arr_angles = data.map((a, i) => {
+
+    const sorted = data.sort((a, b) => 
+        order.findIndex((w) => w == a[0]) - order.findIndex((w) => w == b[0]));
+        // .sort((a, b) => b[1] - a[1])
+        // .filter(a => IIC_arr.includes(a[0]))
+        // // .sort((a, b) => a[0].localeCompare(b[0]))
+        // .concat(
+        //     data.filter(a => !IIC_arr.includes(a[0]))
+        //     .sort((a,b) => a[1] - b[1])
+        //     // .sort((a,b) => a[0].localeCompare(b[0]))
+        // );
+    const arr_angles = sorted.map((a, i) => {
         const ang = 2 * Math.PI * a[1] / total;
         var last_start = (i == 0) ? -Math.PI * total_IIC / total : last_end;
         last_end = last_start + ang;
@@ -129,6 +154,7 @@ function create_pie(data) {
         return {
             name: a[0], 
             value: a[1], 
+            color: colors[a[0]],
             angle: ang,
             startAngle: last_start,
             endAngle: last_end
@@ -137,31 +163,55 @@ function create_pie(data) {
     return arr_angles;
 }
 
+const arcGen = 
+            d3.arc()
+            .innerRadius(0)
+            .outerRadius(radius);
+
 function create(data) {
     
     const pie_data = create_pie(data);
     const u = svg.selectAll("path").data(pie_data);
 
+    u.selectAll("text")
+        .attr("transform", d => `translate(${arcGen.centroid(d)})`)
+        
+
     u
         .enter()
         .append('path')
         .merge(u)
-        .attr("d", d3.arc()
-            .innerRadius(0)
-            .outerRadius(radius)
-            // .startAngle(d => -get_half_angle(d))
-            // .endAngle(d => get_half_angle(d))
+        .attr("d",
+            arcGen
         )
         // .transition(1000)
         // .attrTween("d", arcTween)
         .attr("id", d => d.name)
-        .attr("fill", d => (IIC_arr.includes(d.name)) ? "#dad" : "#ded")
-        .attr("stroke", "black")
-        .style("stroke-width", "2px")
+        .attr("fill", d => d.color)
+        .style("stroke-width", "0px")
         .style("opacity",1)
-        .append('span')
-            .attr('text',d => d.name);
+        // .attr("fill", d => (IIC_arr.includes(d.name)) ? IIC_color(d) : "#ded")
+        // .attr("stroke", "black")
+        // .append('p')
+        //     .text(d => d.name)
+        //     .attr("transform", d => {
+        //         let ar = arc.centroid(d)
+        //         // console.log(ar);
+        //         return `translate${ar[0]},${ar[1]}`;
+        //     });
 
+    // u
+    //     .enter()
+    //     .append("text")
+    //     .text(d => d.name)
+    //     .attr("transform", d => `translate(${arcGen.centroid(d)})`)
+    //     .style("text-transform","uppercase")
+    //     .style("font-family","sans-serif")
+    //     .style("text-anchor","middle")
+    //     .style('font-size', d => 4 + 20 * (d.value / 5000))
+        // .exit()
+        // .remove()
+    
     u
         .exit()
         .remove()

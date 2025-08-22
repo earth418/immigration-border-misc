@@ -292,7 +292,7 @@ const projection1 = d3.geoMercator()
 
 function transition() {
 
-    const duration = 20000;
+    const duration = 40000;
 
     d3.select("#treecbp-container").transition()
         .duration(duration)
@@ -304,7 +304,6 @@ function transition() {
         .attr("width", "5px")
         .attr("x", 0)
         .attr("y", 0)
-        // .end().then((w) => )
 
     
     leaf.selectAll("text").remove();
