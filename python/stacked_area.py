@@ -31,12 +31,12 @@ raw_data = get_data_from("jon_data.csv")
 # Adding 2025 data from Cabo Institute
 # https://www.cato.org/blog/deportations-add-almost-1-trillion-costs-gops-big-beautiful-bill
 
-for rd in raw_data:
-    rd.append(0.0) # add bbb column
+# for rd in raw_data:
+#     rd.append(0.0) # add bbb column
 
-fy_2025 = [a for a in raw_data[-1]]
-fy_2025[-1] += 167100.0
-raw_data.append(fy_2025)
+# fy_2025 = [a for a in raw_data[-1]]
+# fy_2025[-1] += 167100.0
+# raw_data.append(fy_2025)
 
 INTERP = 10
 
@@ -48,6 +48,10 @@ for ind,year in enumerate(raw_data[:-1]):
             data.append([((ayear2 - ayear1) * i/INTERP + ayear1) for ayear1,ayear2 in zip(year,year2)])
 
 data.append(raw_data[-1])
+
+
+# bbb_data = 167100.0
+
 
 # print(data)
 # 1/0
@@ -69,13 +73,13 @@ colors = {
 
 # print(data)
 labels = ["cbp", "ice", "uccis","dhs","uscg","usss",
-            "usms","fbi",'dea',"atf","traffic","irs","ucsp","bbb"]
+            "usms","fbi",'dea',"atf","traffic","irs","ucsp"]
 
 # print(data[-1])
 # print(zip(data[-1],labels))
 # 1/0
 
-order = ["fbi","dea","usms","atf","usss","uscg","cbp","ice","bbb"]
+order = ["fbi","dea","usms","atf","usss","uscg","cbp","ice"]
 
 
 data_combined = [zip(labels, map(lambda x: x/1000, year)) for year in data]
@@ -153,9 +157,60 @@ def anim(i, ax):
 
 # fig.text()
 
-a = animation.FuncAnimation(fig, anim, init_func=start, blit=False, repeat=False,
-                            frames=range(0,len(data)+1), interval=80, fargs=(ax,))
+# a = animation.FuncAnimation(fig, anim, init_func=start, blit=False, repeat=False,
+#                             frames=range(0,len(data)+1), interval=80, fargs=(ax,))
+
+# plt.show()
+
+bbb_data = []
+
+
+# [non-immigration, immigration]
+# year1 = [0,0]
+
+imm = non_imm = []
+for year in data_in_order:
+    imm_t = non_imm_t = 0
+    for x, y in year:
+        if x == "ice" or x == "cbp" or x == "uscg":
+            imm_t += y
+        else:
+            non_imm_t += y
+    imm.append(imm_t)
+    non_imm.append(non_imm_t)
+
+# immis = ["ice","cbp","uscg"]
+# imm, non_imm = []
+# non_imm = sum(filter(lambda x: x[0] in immis, data_in_order[-1]))
+# imm = sum()
+
+year1 = [non_imm[-1], imm[-1]]
+year2 = [non_imm[-1] + 1100, imm[-1] + 167100]
+for i in range(INTERP):
+    bbb_data.append([((ayear2 - ayear1) * i/INTERP + ayear1) for ayear1,ayear2 in zip(year1,year2)])
+
+
+data2 = [[imm[i], non_imm[i]] for i in range(len(data_in_order))]
+years2 = list(np.linspace(2023.8, 2024, len(data2))) + list(np.linspace(2024, 2025, 11))
+# print()
+full_data2 = data2 + bbb_data
+
+def anim2(i, ax):
+    ax.cla()
+    ax.tick_params(axis="y",pad=-4)
+    ax.tick_params(axis="x",pad=-4)
+    if with_text:
+        ax.set_title("Federal Law Enforcement Spending")
+    
+    ax.stackplot(years2[:i], np.transpose(full_data2[:i]), 
+                 colors=color_list, labels=labels)
+
+
+b = animation.FuncAnimation(fig, anim2, init_func=start, fargs=(ax,))
+
 plt.show()
+
+
 # a.save("area_chart.gif", dpi=300,savefig_kwargs={"transparent": True})
 # a.save(("notext" if not with_text else "") + "area_chart.mp4", dpi=300)
 
