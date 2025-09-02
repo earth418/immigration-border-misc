@@ -2,3 +2,4 @@ node_modules
 images
 *.gif
 *.mp4
+python/output
