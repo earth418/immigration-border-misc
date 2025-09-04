@@ -23,7 +23,7 @@ def get_data_from(filename):
 
     return privates, publics
 
-def latlon_to_world(lat, lon, R=60):
+def latlon_to_world(lat : float, lon : float, R=600):
     x = R * (lon - 0.0)
     y = R * math.log(math.tan(math.pi / 4.0 + lat / 2.0))
     return (x, y, 0.0)
@@ -60,6 +60,9 @@ for public in publics:
     # total_pub += i
 # print(total_pub)
 
+#print(pubs[0])
+#1/0
+
 graph = bpy.context.evaluated_depsgraph_get()
 people = bpy.data.objects["dude"]
 e_people = people.evaluated_get(graph)
@@ -67,27 +70,33 @@ e_people = people.evaluated_get(graph)
 instances = (p for p in graph.object_instances if p.is_instance and p.parent == e_people)
 
 #print([i.get('id') for i in instances])
-print(next(instances).id_data)
-#print(instances)
-1/0
+#for instance in instances:
+#    print(instance.values())
+#print(next(instances).instance_object.get('id'))
+#1/0
 
 priv_count = priv_index = 0
 pub_count = pub_index = 0
+i = 0
 
 for instance in instances:
     
-    instance.keyframe_insert(data_path="location",frame=128)
-        
-    if instance.get('id') == 0: # 5396 of them
+    instance.instance_object.keyframe_insert(data_path="location",frame=128)
+#    i += 1        
+#    if i < 5396: # 5396 of them
+    if instance.getattribute("private"):
+        print(priv_index)
         p = privs[priv_index]
         priv_count += 1
+        
         if priv_count == p[0]:
             priv_index += 1
             priv_count = 0
-        
-        # priv_count += p[0]
-        instance.location = latlon_to_world(p[1], p[2])
-        # instance.location = (10.0, 10.0, 0.0)
+            
+            # priv_count += p[0]
+    #        print(p[1], p[2])
+            instance.instance_object.location = latlon_to_world(float(p[1]) * math.pi / 180, float(p[2]) * math.pi / 180)
+            # instance.location = (10.0, 10.0, 0.0)
         
     else:
         p = pubs[pub_index]
@@ -96,9 +105,9 @@ for instance in instances:
             pub_index += 1
             pub_count = 0
 
-        instance.location = latlon_to_world(p[1], p[2])
+            instance.instance_object.location = latlon_to_world(float(p[1]) * math.pi / 180, float(p[2]) * math.pi / 180)
     
-    instance.keyframe_insert(data_path="location",frame=196)
+    instance.instance_object.keyframe_insert(data_path="location",frame=196)
     
 # print(instances)
 
