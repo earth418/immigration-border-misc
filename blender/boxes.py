@@ -40,10 +40,19 @@ txt = cube.children["label"]
 
 cc = bpy.data.collections.new("temp")
 
+# N = max(n_boxes)
+side_length = lambda N: math.ceil(math.sqrt(N))
+scale_per_box = lambda N: 1.0 / side_length(N)
+# offset = scale_per_box
+pos = lambda N, nb: (nb // side_length(N), nb % side_length(N)) 
 
 for t, nb, l in zip(totals, n_boxes, leftovers):
+    
+    for box in range(nb):
+        pass
     i += 1
     nc = cube.copy()
     cc.objects.link(nc)
-    # nc.set
+    nc.keyframe_insert(frame=0)
     
+    nc.location = pos(nb, ) + (0.0,) # quick lil z axis action

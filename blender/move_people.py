@@ -67,7 +67,14 @@ graph = bpy.context.evaluated_depsgraph_get()
 people = bpy.data.objects["dude"]
 e_people = people.evaluated_get(graph)
 
+# e_people.data.attributes
+
 instances = (p for p in graph.object_instances if p.is_instance and p.parent == e_people)
+
+# print(instances)
+# next(instances).
+print(next(instances).instance_object.data.attributes.keys())
+1/0
 
 #print([i.get('id') for i in instances])
 #for instance in instances:
@@ -81,10 +88,12 @@ i = 0
 
 for instance in instances:
     
-    instance.instance_object.keyframe_insert(data_path="location",frame=128)
+    # instance.instance_object.keyframe_insert(data_path="location",frame=128)
+    instance.keyframe_insert(data_path="location",frame=128)
 #    i += 1        
 #    if i < 5396: # 5396 of them
-    if instance.getattribute("private"):
+    
+    if instance.instance_object.data.attributes["private"]:
         print(priv_index)
         p = privs[priv_index]
         priv_count += 1
@@ -107,7 +116,8 @@ for instance in instances:
 
             instance.instance_object.location = latlon_to_world(float(p[1]) * math.pi / 180, float(p[2]) * math.pi / 180)
     
-    instance.instance_object.keyframe_insert(data_path="location",frame=196)
+    # instance.instance_object.keyframe_insert(data_path="location",frame=196)
+    instance.keyframe_insert(data_path="location",frame=196)
     
 # print(instances)
 
