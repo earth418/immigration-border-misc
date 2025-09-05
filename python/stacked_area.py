@@ -28,8 +28,8 @@ def get_data_from(filename):
 
 raw_data = get_data_from("jon_data.csv")
 
-print("\n".join([f"cbp:{rd[0]},ice:{rd[1]},+:{sum(rd[:2])},box:{sum(rd[:2])/4558:2.3f},leftover:{sum(rd[:2]) % 4558:2.3f}" for rd in raw_data]))
-1/0
+# print("\n".join([f"cbp:{rd[0]},ice:{rd[1]},+:{sum(rd[:2])},box:{sum(rd[:2])/4558:2.3f},leftover:{sum(rd[:2]) % 4558:2.3f}" for rd in raw_data]))
+# 1/0
 
 # Adding 2025 data from Cabo Institute
 # https://www.cato.org/blog/deportations-add-almost-1-trillion-costs-gops-big-beautiful-bill

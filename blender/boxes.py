@@ -29,30 +29,54 @@ BOX = 4558
 for rd in raw_data:
     cbp.append(rd[0])
     ice.append(rd[1])
-    totals.append(cbp[-1] + cbp[-2])
+    totals.append(cbp[-1] + ice[-1])
     n_boxes.append(totals[-1] // BOX)
     leftovers.append(totals[-1] % BOX)
 
-i = 0
+# i = 0
 
 cube = bpy.data.objects["basebox"]
-txt = cube.children["label"]
+#txt = cube.children["label"]
+txt = cube.children[0]
+totallabel = bpy.data.objects["total_label"]
 
 cc = bpy.data.collections.new("temp")
 
 # N = max(n_boxes)
-side_length = lambda N: math.ceil(math.sqrt(N))
-scale_per_box = lambda N: 1.0 / side_length(N)
+side_length = lambda N: max(2, math.ceil(math.sqrt(N)))
+scale_per_box = lambda N: 1.1 / side_length(N)
 # offset = scale_per_box
-pos = lambda N, nb: (nb // side_length(N), nb % side_length(N)) 
+pos = lambda N, nb: (-1.1 + scale_per_box(N) * (nb // side_length(N)), 
+                      1.1 - scale_per_box(N) * (nb % side_length(N)))
+# curr_nb = 1
+curr_boxes = [cube] + [bpy.data.objects[f"basebox.{i:03d}"] for i in range(0,9)]
 
-for t, nb, l in zip(totals, n_boxes, leftovers):
+for i, (t, nb, l) in enumerate(zip(totals, n_boxes, leftovers)):
     
+    
+    totallabel.data.body = f'${t / 1000}B'
     for box in range(nb):
-        pass
-    i += 1
-    nc = cube.copy()
-    cc.objects.link(nc)
-    nc.keyframe_insert(frame=0)
+        if box >= len(curr_boxes):
+            print("Error!!")
+            # nc = cube.copy()
+            # nc.data = cube.data.copy()
+            # cc.objects.link(nc)
+            # curr_boxes.append(nc)
     
-    nc.location = pos(nb, ) + (0.0,) # quick lil z axis action
+        curr_box = curr_boxes[box]
+        # curr_box.trans
+        p = pos(nb, box)
+        
+        curr_box.keyframe_insert("location",frame=42+i*3)
+        curr_box.keyframe_insert("location",frame=42+i*3)
+        curr_box.location = p + (0.0,) # quick lil z axis action
+        curr_box.keyframe_insert("location",frame=45+i*3)
+        print(curr_box.location)
+        
+        if box == nb - 1:
+            curr_box.scale = (l / BOX, l / BOX, curr_box.scale.z)
+            
+            curr_box.location = (p[0] - l, p[1] - l, 0.0)
+            # pass
+    # i += 1
+        
