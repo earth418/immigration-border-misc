@@ -3,7 +3,12 @@
 import csv
 import bpy
 import math
+import random
 
+def random_circle(R=1):
+    a = random.random() * 2 * math.pi
+    r = R * random.random()
+    return (r * math.cos(a), r * math.sin(a))
 
 def get_data_from(filename):
     privates = []
@@ -24,8 +29,10 @@ def get_data_from(filename):
     return privates, publics
 
 def latlon_to_world(lat : float, lon : float, R=600):
-    x = R * (lon - 0.0)
-    y = R * math.log(math.tan(math.pi / 4.0 + lat / 2.0))
+    us_lat = 37 * math.pi / 180.0
+    us_lon = -95 * math.pi / 180.0
+    x = R * (lon - us_lon)
+    y = R * math.log(math.tan(math.pi / 4.0 + (lat - us_lat) / 2.0))
     return (x, y, 0.0)
 
 path = "C:\\Users\\aliha\\Desktop\\immigration-border-misc\\blender\\AUG2025_DetentionCenters.csv"
@@ -60,21 +67,88 @@ for public in publics:
     # total_pub += i
 # print(total_pub)
 
+priv_count = priv_index = 0
+pub_count = pub_index = 0
+
+
+
+pc = bpy.data.objects["test_data"]
+old_mesh = pc.data
+mesh = bpy.data.meshes.new("mesh1")
+pc.data = mesh
+bpy.data.meshes.remove(old_mesh)
+
+locations1 = []
+i = 0
+while i < 5396: # 5396 of them
+    print(priv_index)
+    i += 1
+    p = privs[priv_index]
+    priv_count += 1
+    
+    if priv_count == p[0]:
+        priv_index += 1
+        priv_count = 0
+
+    loc1 = latlon_to_world(float(p[1]) * math.pi / 180, float(p[2]) * math.pi / 180)
+    rc = random_circle(3)
+    loc = (loc1[0] + rc[0], loc1[1] + rc[1], loc1[2])
+    locations1.append(loc)
+
+mesh.from_pydata(locations1, [], [])
+mesh.update()
+
+
+pc = bpy.data.objects["test_data2"]
+old_mesh = pc.data
+mesh = bpy.data.meshes.new("mesh2")
+pc.data = mesh
+bpy.data.meshes.remove(old_mesh)
+
+#mesh = .data
+#mesh.clear_geometry()
+locations2 = []
+
+i = 0
+while i < 603:
+    i += 1
+    p = pubs[pub_index]
+    pub_count += 1
+    if pub_count == p[0]:
+        pub_index += 1
+        pub_count = 0
+
+        # locations2.append(latlon_to_world(float(p[1]) * math.pi / 180, float(p[2]) * math.pi / 180))
+    loc2 = latlon_to_world(float(p[1]) * math.pi / 180, float(p[2]) * math.pi / 180)
+    rc = random_circle(3)
+    loc = (loc2[0] + rc[0], loc2[1] + rc[1], loc2[2])
+    locations2.append(loc)
+        
+mesh.from_pydata(locations2, [], [])
+mesh.update()
+
+
+    # instance.instance_object.keyframe_insert(data_path="location",frame=196)
+    # instance.keyframe_insert(data_path="location",frame=196)
+
+
 #print(pubs[0])
 #1/0
 
-graph = bpy.context.evaluated_depsgraph_get()
-people = bpy.data.objects["dude"]
-e_people = people.evaluated_get(graph)
+# bpy.ops.anim.change_frame(frame = 128)
+# graph = bpy.context.evaluated_depsgraph_get()
+# people = bpy.data.objects["dude"]
+# e_people = people.evaluated_get(graph)
+
 
 # e_people.data.attributes
 
-instances = (p for p in graph.object_instances if p.is_instance and p.parent == e_people)
+# instances = (p for p in graph.object_instances if p.is_instance and p.parent == e_people)
 
 # print(instances)
 # next(instances).
-print(next(instances).instance_object.data.attributes.keys())
-1/0
+# print(next(instances).instance_object.data.attributes.keys())
+# 1/0
 
 #print([i.get('id') for i in instances])
 #for instance in instances:
@@ -82,42 +156,45 @@ print(next(instances).instance_object.data.attributes.keys())
 #print(next(instances).instance_object.get('id'))
 #1/0
 
-priv_count = priv_index = 0
-pub_count = pub_index = 0
-i = 0
+# priv_count = priv_index = 0
+# pub_count = pub_index = 0
+# i = 0
 
-for instance in instances:
+
+# for instance in instances:
     
-    # instance.instance_object.keyframe_insert(data_path="location",frame=128)
-    instance.keyframe_insert(data_path="location",frame=128)
-#    i += 1        
-#    if i < 5396: # 5396 of them
+#     # instance.instance_object.keyframe_insert(data_path="location",frame=128)
+#     instance.keyframe_insert(data_path="location",frame=128)
+# #    i += 1        
+# #    if i < 5396: # 5396 of them
     
-    if instance.instance_object.data.attributes["private"]:
-        print(priv_index)
-        p = privs[priv_index]
-        priv_count += 1
+#     if instance.instance_object.data.attributes["private"]:
+#         print(priv_index)
+#         p = privs[priv_index]
+#         priv_count += 1
         
-        if priv_count == p[0]:
-            priv_index += 1
-            priv_count = 0
+#         if priv_count == p[0]:
+#             priv_index += 1
+#             priv_count = 0
             
-            # priv_count += p[0]
-    #        print(p[1], p[2])
-            instance.instance_object.location = latlon_to_world(float(p[1]) * math.pi / 180, float(p[2]) * math.pi / 180)
-            # instance.location = (10.0, 10.0, 0.0)
+#             # priv_count += p[0]
+#     #        print(p[1], p[2])
+#             locations1.append(latlon_to_world(float(p[1]) * math.pi / 180, float(p[2]) * math.pi / 180))
+#             instance.instance_object.location = latlon_to_world(float(p[1]) * math.pi / 180, float(p[2]) * math.pi / 180)
+#             # instance.location = (10.0, 10.0, 0.0)
         
-    else:
-        p = pubs[pub_index]
-        pub_count += 1
-        if pub_count == p[0]:
-            pub_index += 1
-            pub_count = 0
+#     else:
+#         p = pubs[pub_index]
+#         pub_count += 1
+#         if pub_count == p[0]:
+#             pub_index += 1
+#             pub_count = 0
 
-            instance.instance_object.location = latlon_to_world(float(p[1]) * math.pi / 180, float(p[2]) * math.pi / 180)
+#             instance.instance_object.location = latlon_to_world(float(p[1]) * math.pi / 180, float(p[2]) * math.pi / 180)
+#             locations2.append(latlon_to_world(float(p[1]) * math.pi / 180, float(p[2]) * math.pi / 180))
     
-    # instance.instance_object.keyframe_insert(data_path="location",frame=196)
-    instance.keyframe_insert(data_path="location",frame=196)
+#     # instance.instance_object.keyframe_insert(data_path="location",frame=196)
+#     instance.keyframe_insert(data_path="location",frame=196)
     
 # print(instances)
 
