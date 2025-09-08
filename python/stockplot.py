@@ -67,7 +67,7 @@ def plot_stock_filename(stock_name, filename,withtext):
 
     WINDOW_SIZE = len(datas)
 
-    line, = ax.plot(dates, datas)
+    line, = ax.plot(dates, datas, color='white')
     # ax.set_xlabel("Date")
     # ax.set_ylabel("GEO Group Stock Price [$]")
     # ax.set_ylabel("[$]")
@@ -80,16 +80,23 @@ def plot_stock_filename(stock_name, filename,withtext):
     ax.xaxis.set_major_formatter(pltdate.DateFormatter("%m/%y"))
     ax.grid(False)
     ax.xaxis.set_visible(withtext)
-    ax.xaxis.set_visible(withtext)
-
-    ax.set_title(stock_name)
+    ax.yaxis.set_visible(withtext)
+    
+    
+    fig.set_facecolor("#00ff00")
+    ax.set_facecolor("#00ff00")
 
     if withtext:
-        ax.text(0.05,0.9,"$",transform=ax.transAxes,fontsize=12,color=PALETTE[0])
-        ax.text(0.06,0.86,str(datas[0]),transform=ax.transAxes,fontsize=30,color=PALETTE[0])
-        ax.text(0.05,0.82,"",transform=ax.transAxes,fontsize=8,color=PALETTE[1])
-        ax.set_facecolor(PALETTE[-1])
-        fig.set_facecolor(PALETTE[-2])
+        ax.set_title(stock_name)
+
+    if withtext:
+        # colors = [PALETTE[0], PALETTE[0], PALETTE[1]]
+        colors = ['white', 'white']
+        ax.text(0.05,0.9,"$",transform=ax.transAxes,fontsize=12,color=colors[0])
+        ax.text(0.06,0.86,str(datas[0]),transform=ax.transAxes,fontsize=30,color=colors[0])
+        ax.text(0.05,0.82,"",transform=ax.transAxes,fontsize=8,color=colors[1])
+        # ax.set_facecolor(PALETTE[-1])
+        # fig.set_facecolor(PALETTE[-2])
 
     def anim(i):
         i = i + 1
@@ -130,12 +137,12 @@ def plot_stock_filename(stock_name, filename,withtext):
     # anim(60)
     # fig.savefig("testing.png",dpi=300)
     a = animation.FuncAnimation(fig, anim, blit=False, frames=len(datas), interval=100)
-    a.save("stocks.gif",dpi=300) #, savefig_kwargs={"transparent": True})
+    # a.save("stocks.gif",dpi=300) #, savefig_kwargs={"transparent": True})
     # a.save(("notext_" if not withtext else "_") + stock_name.split(":")[-1] + "_stocksplot.mp4",dpi=300)
     print("Done with " + stock_name)
-    # plt.show()
+    plt.show()
     
-plot_stock_filename("NYSE:GEO","STOCK_US_XNYS_GEO.csv",True)
+# plot_stock_filename("NYSE:GEO","STOCK_US_XNYS_GEO.csv",True)
 # plot_stock_filename("NYSE:CXW","STOCK_US_XNYS_CXW.csv",True)
-# plot_stock_filename("NYSE:GEO","STOCK_US_XNYS_GEO.csv",False)
+plot_stock_filename("NYSE:GEO","STOCK_US_XNYS_GEO.csv",False)
 # plot_stock_filename("NYSE:CXW","STOCK_US_XNYS_CXW.csv",False)
