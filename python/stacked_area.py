@@ -5,11 +5,21 @@ import matplotlib.animation as animation
 import seaborn as sns
 import csv
 from matplotlib.font_manager import fontManager, FontProperties
+from pyfonts import load_google_font
 
-path = "din-condensed-bold.ttf"
-fontManager.addfont(path)
-prop = FontProperties(fname=path)
-sns.set_theme(font=prop.get_name(), 
+# path = "din-condensed-bold.ttf"
+# fontManager.addfont(path)
+# prop = FontProperties(fname=path)
+Lora = load_google_font("Lora",weight="bold")
+Source = load_google_font("Source Sans 3")
+SourceLight = load_google_font("Source Sans 3", weight="light")
+
+fontManager.addfont(Lora.get_file())
+fontManager.addfont(Source.get_file())
+fontManager.addfont(SourceLight.get_file())
+
+
+sns.set_theme(font=Lora.get_name(), 
                 style={"axes.grid":False,
                         "xtick.bottom":False,
                         "ytick.left":False})
@@ -97,16 +107,19 @@ color_list = [colors[c] for c in order]
 fig, ax = plt.subplots()
 fig.set_size_inches(8,4.5)
 fig.subplots_adjust(left=0.15,right=0.85)
-fig.set_facecolor("#00ff00")
-ax.set_facecolor("#00ff00")
+# fig.set_facecolor("#00ff00")
+# fig.set_facecolor("#3354b9")
+# ax.set_facecolor("#00ff00")
 
 with_text = True
 
 # if with_text:
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
-ax.spines['left'].set_visible(False)
-ax.spines['bottom'].set_visible(False)
+ax.spines['left'].set(linewidth=0.5)
+ax.spines['bottom'].set(linewidth=0.5)
+# ax.spines['left'].set_visible(False)
+# ax.spines['bottom'].set_visible(False)
 
 if not with_text:
     ax.xaxis.set_visible(False)
@@ -116,36 +129,67 @@ def start():
     anim(0, ax)
 
 # print(years)
+# moving_texts = []
+ 
+if with_text:
+    yv = range(10, 70, 10)
+    for i, d in enumerate(yv):
+        fig.text(0.12, 0.21 + 0.55 * i / (len(yv) - 1), d, font=SourceLight, color="black", fontsize=10)
+        
+    yrs = range(int(years[0]),int(years[-1])+1,3)
+    for i, d in enumerate(yrs):
+        fig.text(0.17 + 0.61 * i / (len(yrs) - 1), 0.07, str(d), font=SourceLight, color="black", fontsize=10)
+
+
+# darker_color_list = []
+# for col in color_list:
+#     int(col[0:2],base=16)
 
 def anim(i, ax):
     ax.cla()
-    ax.tick_params(axis="y",pad=-4)
-    ax.tick_params(axis="x",pad=-4)
+    # i = i + len(data) - 10
+    # ax.tick_params(axis="y",pad=-4)
+    # ax.tick_params(axis="x",pad=-4)
     if with_text:
-        ax.set_title("Federal Law Enforcement Spending",color="white")
+        ax.set_title("Federal Law Enforcement Spending",color="black",font=Source, fontsize=18)
         # plt.axes().set_title()
     
     ax.stackplot(years[:i], np.transpose(just_data[:i]), 
-                #  linewidth=1,
+                #  linewidth=0.33 if i < len(data) else 0.0,
                 #  edgecolor='black',
-                #  linestyle=['solid']*(len(just_data[0])+1)
-                #           +["--"],
+                #  linestyle='solid',
                  colors=color_list, labels=labels)
     ax.set_xlim(years[0], years[-1])
-    ax.set_ylim(0, max(70,max(0,i-210)*25))
-   
-    if with_text:
-        ax.xaxis.set_tick_params(labelsize=7)
-        ax.yaxis.set_tick_params(labelsize=7)
-        ax.xaxis.set_tick_params(colors="white")
-        ax.yaxis.set_tick_params(colors="white")
+    ax.set_ylim(0, 70)
+    # ax.set_ylim(0, max(70,max(0,i-210)*25))
+    # if i < len(data):
+    #     print('...here....')
+    #     ax.vlines(years[i-1], 0.05, np.sum(just_data[i-1]), color="white", linewidth=2,zorder=100)
+    # else:
+    
+    tot = np.zeros(i)
+    for dd in np.transpose(just_data[:i]):
+        # print(dd)
+        tot += dd
+        ax.plot(years[:i], tot, linewidth=0.5, color="black")
+       
+        # print('omg we here :D')
+        # print(i)
+        # ax.vlines(years[-1]+0.3, 0.05, np.sum(just_data[-1]), color="white", linewidth=15,zorder=10000)
+    # if with_text:
+    #     ax.xaxis.set_tick_params(labelsize=7)
+    #     ax.yaxis.set_tick_params(labelsize=7)
+    #     ax.xaxis.set_tick_params(colors="white")
+    #     ax.yaxis.set_tick_params(colors="white")
 
-        ax.set_yticks(range(10,70,10))
-        ax.set_yticklabels([f'{a}' for a in range(10,70,10)])
-        ax.set_xticks(range(int(years[0]),int(years[-1])+1,3))
+    #     ax.set_yticks(range(10,70,10))
+    #     ax.set_yticklabels([f'{a}' for a in range(10,70,10)])
+    #     ax.set_xticks(range(int(years[0]),int(years[-1])+1,3))
+    ax.set_yticks([])
+    ax.set_xticks([])
     
     tt = 0
-    
+    # i <= len(data)
     if i > 0 and with_text:
         for dd in data_in_order[i-1]:
             if dd[0] == "atf" or dd[0] == "usms" or dd[1] == 0:
@@ -154,7 +198,8 @@ def anim(i, ax):
             ax.text(years[i-1], (2*tt + dd[1]) / 2, 
                     f' {dd[0].upper()}: ${dd[1]:2.2f}B',
                     color=colors[dd[0]],
-                    fontsize=16 if dd[0] == "ice" or dd[0] == 'bbb' or dd[0] == "cbp" else 13)
+                    font=Lora,
+                    fontsize=12 if dd[0] == "ice" or dd[0] == 'bbb' or dd[0] == "cbp" else 9)
             tt += dd[1]
     
     return ax,
@@ -163,11 +208,11 @@ a = animation.FuncAnimation(fig, anim, init_func=start, blit=False, repeat=False
                             frames=range(0,len(data)+1), interval=80, fargs=(ax,))
 
 
-a.save(("notext" if not with_text else "") + "area_chart.mp4", dpi=300)
+# a.save(("notext" if not with_text else "") + "area_chart.mp4", dpi=300)
+plt.show()
 # a.save("area_chart.gif", dpi=300,savefig_kwargs={"transparent": True})
 
 # a.save("stacked.gif",dpi=300)
-# plt.show()
 
 def bbb():
     bbb_data = []
