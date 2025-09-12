@@ -98,8 +98,8 @@ def plot_stock_filename(stock_name, filename,withtext):
 
     WINDOW_SIZE = 30
 
-    img = plt.imread("grid.png")
-    ax.imshow(img,vmin=0, vmax=2250) #, extent=[0, 365, 10.0, 40.0])
+    # img = plt.imread("grid.png")
+    # ax.imshow(img,vmin=0, vmax=2250) #, extent=[0, 365, 10.0, 40.0])
 
     # LINE IS HERE
     line, = ax.plot(dates, datas, color=PALETTE[0], linewidth=1)
