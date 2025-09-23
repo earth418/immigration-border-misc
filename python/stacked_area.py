@@ -135,9 +135,10 @@ xlabels = []
 ylabels = []
  
 if with_text:
-    yv = range(10, 70, 10)
-    for i, d in enumerate(yv):
-        ylabels.append(fig.text(0.12, 0.21 + 0.55 * i / (len(yv) - 1), d, font=SourceLight, color="black", fontsize=10))
+    # yv = range(10, 70, 10)
+    # for i, d in enumerate(yv):
+    #     ylabels.append(fig.text(0.12, 0.21 + 0.55 * i / (len(yv) - 1), d, font=SourceLight, color="black", fontsize=10))
+    #     ylabels.append(ax.text(years[0], d, d, font=SourceLight, color="black", fontsize=10))
         
     yrs = range(int(years[0]),int(years[-1])+1,3)
     for i, d in enumerate(yrs):
@@ -382,33 +383,134 @@ def bbb2():
     full_data2 = data2
     ax.set_xlim(years2[0], years2[-1] + 3)
     ax.set_ylim(0, 230.0)
+    # plt.axes().get_xaxis_transform
     
-    ax.stackplot(years2, np.transpose(data2), colors=[non_immi_c,immi_color])
+    # ax.stackplot(years2, np.transpose(data2), colors=[non_immi_c,immi_color])
+    # tot = np.zeros(len(data2))
+    # for dd in np.transpose(data2):
+    #     tot += dd
+    # ax.plot(years2, np.zeros(22), linewidth=0.5, color="black")
+    # ax.plot(years2, np.transpose(data2)[0], linewidth=0.5, color="black")
+    # ax.plot(years2, np.transpose(data2)[1], linewidth=0.5, color="black")
     
-    ax.bar(years2[-1] + 0.75, year2[0], 1.0, 0.0, color=non_immi_c)
-    ax.bar(years2[-1] + 0.75, year2[1], 1.0, year2[0], color=immi_color)
     
-    fig.text(0.77, 0.0475, "2025+\nBBB", font=SourceLight,)
+    # ax.bar(years2[-1] + 0.75, year2[0], 1.0, 0.0, color=non_immi_c)
+    # ax.bar(years2[-1] + 0.75, year2[1], 1.0, year2[0], color=immi_color)
+    
+    
+    
+    fig.text(0.785, 0.0475, "2025+\nBBB", font=SourceLight, horizontalalignment="center")
     
     for xlabel in xlabels:
-        # plt.text().get_pos
-        xlabel.set_x(0.9 * (xlabel.get_position()[0] - 0.17) + 0.17)
+        xlabel.set_x(0.88 * (xlabel.get_position()[0] - 0.17) + 0.17)
+        # xlabel.set_x(2021, transform=ax.get_xaxis_transform())
     
-    for ylabel in ylabels:
-        # plt.text().get_pos
-        # plt.text().tran
-        # plt.text().set()
-        ylabel.set_y(0.3 * (ylabel.get_position()[1] - 0.21) + 0.1)
+    # for ylabel in ylabels:
+    #     ylabel.set_y(0.32 * (ylabel.get_position()[1] - 0.21) + 0.1)
         
     
-    if with_text:
-        # curr = year2[-1]
-        ax.text(years2[-1]+1.75, year2[0] / 2, 
-                f' {'OTHER'}: ${year2[0]:2.2f}B')
-        ax.text(years2[-1]+1.75, year2[0] + (year2[1] / 2), 
-                f' {'IMMIG.'}: ${year2[1]:2.2f}B')
-            
+    # if with_text:
+    #     # curr = year2[-1]
+    #     ax.text(years2[-1]+1.75, year2[0] / 2, 
+    #             f' {'OTHER'}: ${year2[0]:2.2f}B')
+    #     ax.text(years2[-1]+1.75, year2[0] + (year2[1] / 2), 
+    #             f' {'IMMIG.'}: ${year2[1]:2.2f}B')
+    # origs = [ylabel.get_position()[1] for ylabel in ylabels]
+    # new_range = ()
     
-    plt.show()
+    def anim2(i, ax):
+        
+        # print(i)
+        i = max(0,i - 10)
+        i = min(40, i)
+        
+        ax.cla()
+        
+        ax.set_xticks([])
+        ax.set_yticks([])
+ 
+        if with_text:
+            ax.set_title("Federal Law Enforcement Spending")
+            
+        ld2 = len(data2)
+        d_index = ld2 + i
+        # _years = years2[:d_index]
+        # _data = np.transpose(full_data2[:d_index])
+        
+        alpha = i / 40
+        
+        ax.stackplot(years2, np.transpose(data2), 
+                     colors=[non_immi_c,immi_color],
+                     linewidth=0.5,
+                     edgecolor='black')
+        
+        # ax.plot(years2, np.zeros(22), linewidth=0.5, color="black")
+        # ax.plot(years2, np.transpose(data2)[0], linewidth=0.5, color="black")
+        # ax.plot(years2, np.sum(data2,1), linewidth=0.5, color="black")
+
+        # print(ax.get_yticklabels())
+        
+        # plt.axes().set_xlim()
+        ax.set_xlim(years2[0], years[-1] + 3.0 )#* alpha)
+        ax.set_ylim(0, 70 + 160.0 * alpha)
+        new_range = range(10, int(70 + 160.0 * alpha), int(15 + 15 * alpha))
+    
+        for g in new_range:
+            ax.text(years2[0]-1.0, g, g, font=SourceLight,color="black", fontsize=10)
+        
+        # yrs = range(int(years[0]),int(years[-1])+1,3)
+        # for y in yrs:
+        #     ax.text()
+        
+        # for ylabel,y,r in zip(ylabels,origs,new_range):
+        #     ylabel.set_text(str(r))
+        #     ylabel.set_y((3.2 / (0.5 + 2.5*alpha)) * (y - 0.21) + 0.2)
+            # ylabel.set_y(0.32 * (y - 0.21) / (0.32 * (alpha + 0.01)) + 0.1)
+        
+        
+        # if with_text:
+        #     fig.text(0.77, 0.0475, "2025+\nBBB", font=SourceLight,)
+            
+        #     for xlabel in xlabels:
+        #         xlabel.set_x(0.9 * (xlabel.get_position()[0] - 0.17) + 0.17)
+            
+        #     for ylabel in ylabels:
+        #         ylabel.set_y(0.3 * (ylabel.get_position()[1] - 0.21) + 0.1)
+                
+        
+        
+        curr = [year1[0] + (year2[0] - year1[0]) * alpha, 
+                year1[1] + (year2[1] - year1[1]) * alpha]
+        
+        if i > 0:
+            
+            ax.bar(years2[-1] + 1.5, curr[0]*min(alpha*4,1), 1.5, 0.0, color=non_immi_c, edgecolor='black', linewidth=0.5)
+            if i >= 11:
+                ax.bar(years2[-1] + 1.5, curr[1]*(4/3)*max(alpha-0.25,0), 1.5, curr[0], color=immi_color, edgecolor='black', linewidth=0.5)
+    
+            # ax.vlines(2025, 0, sum(data2[-1]),color="red",linestyle="--")
+            # plt.axhspan(0, 100, 0, 100, facecolor="0.2",alpha=0.5,zorder=1)
+            # plt.fill_between(_years[ld2:],np.zeros((i)),_data[0][ld2:],alpha=0.5,facecolor=non_immi_c)
+            # plt.fill_between(_years[ld2:],_data[0][ld2:],_data[0][ld2:]+_data[1][ld2:],alpha=0.5,facecolor=immi_color)
+
+        if with_text and i == 0 or i == 40:
+            ax.text(years2[-1] + 2.5*alpha, curr[0] / 2, 
+                    f' {'OTHER'}: ${curr[0]:2.2f}B',
+                    horizontalalignment='left',fontsize=12)
+            ax.text(years2[-1] + 2.5*alpha, curr[0] + (curr[1] / 2), 
+                    f' {'IMMIGRATION'}:\n ${curr[1]:2.2f}B',
+                    horizontalalignment='left', fontsize=10)
+            
+                    # color=colors[dd[0]],
+                    # fontsize=16 if dd[0] == "ice" or dd[0] == 'bbb' or dd[0] == "cbp" else 7)
+            # tt += dd[1]
+        
+        return ax,
+    
+    b = animation.FuncAnimation(fig, anim2, init_func=start, fargs=(ax,), interval=100,frames=58)
+    b.save(("notext_" if not with_text else "") + "bbb_area_chart.mp4", dpi=300)
+    
+    # plt.show()
+
     
 bbb2()
