@@ -106,6 +106,7 @@ leaf.append("rect")
     .attr("width", (d) => d.x1 - d.x0)
     .attr("height", (d) => d.y1 - d.y0)
     .style("stroke","black")
+    .style("stroke-width",0.5)
     .style("fill", (d) => ["#fee5a0", "#ffcf52", "#ffb803"][Math.floor(Math.random() * 3)])
     .style("fill-opacity", 0.9)
 
@@ -168,7 +169,7 @@ function wrapText(txt, text, width) {
     });
 }
 
-function font_sizepx2(d) {return (d.value / 3000000000) * 5 + 6}
+function font_sizepx2(d) {return (d.value / 3000000000) * 4 + 8}
 
 function font_size2(d) {return font_sizepx2(d) + "px"}
 
@@ -177,19 +178,15 @@ function indent2(d) {
     return Math.floor(d.data.name.length / maxCharsPerLine) + 0.7;
 }
 
-// leaf.filter(d => d.value > 293000000).append("text")
-//     .attr("x", (d) => (d.x0 + d.x1) / 2.0 )
-//     .attr("y", (d) => (d.y1 + d.y0) / 2.0)
-//     .attr("dy", "0.5em")
-//     .attr("text-anchor", "middle")
-//     .attr("font-size", font_size2)
-//     .attr("fill", "black")
-//     .attr("font-family", "proxima-nova")
-//     // .text(d => d.data.name)
-//     .each(function(d) { 
-//         const width = Math.max(0, Math.floor(d.x1 - d.x0) - 4);
-//         wrapText(d.data.name, d3.select(this), width);
-//     })
+function d_to_radius(d) {
+    const val = Math.max(5,Math.sqrt(d.value) / 500);
+    return val;
+}
+
+    // .each(function(d) { 
+    //     const width = Math.max(0, Math.floor(d.x1 - d.x0) - 4);
+    //     wrapText(d.data.name, d3.select(this), width);
+    // })
 //     .filter(d => d.value > 400000000).append("tspan")
 //         .text(d => `$${format(Math.floor(d.value / 1000000))} million`)
 //         .attr("x", (d) => (d.x0 + d.x1) / 2.0)
@@ -200,58 +197,6 @@ function indent2(d) {
 //         .attr("fill", "black")
 
 document.getElementById("treecbp-container").append(svg.node());
-
-
-// function get_fips(w) {
-//     const county = w.county;
-//     const query = county + w.state;
-//     let fips_county = fips_data.get(query);
-//     if (query == "SKAGWAYAK")
-//         fips_county = "02230"
-//         // return countymap.get("02230");
-//     else if (fips_county) {
-//         fips_county = fips_county[6];
-//     }
-//     else {
-//         if (query == "DISTRICT OF COLUMBIADC")
-//             fips_county = "11001";
-//             // return countymap.get("11001");
-//         else if (query == "GREATER BRIDGEPORTCT" || query == "WESTERN CONNECTICUTCT" 
-//             || query == "NAUGATUCK VALLEYCT" || (w.city == "STAMFORD" && w.state == "CT"))
-//             fips_county = "09001";
-//             // return countymap.get("09001");
-//         else if (query == "SOUTHEASTERN CONNECTICUTCT") 
-//             fips_county = "09011";
-//             // return countymap.get("09011");
-//         else if (query == "SOUTH CENTRAL CONNECTICUTCT") 
-//             fips_county = "09009";
-//             // return countymap.get("09009");
-//         else if (query == "CAPITOLCT")
-//             fips_county = "09003";
-//             // return countymap.get("09003");
-//         else if ((w.city == "LAS CRUCES" || w.city == "SANTA TERESA") && w.state == "NM")
-//             fips_county = "35013";
-//             // return countymap.get("35013");
-//         else if (w.city == "NASHUA" && w.state == "NH")
-//             // return countymap.get("33011");
-//             fips_county = "33011";
-//         else if (county.endsWith("(CITY)"))
-//             fips_county = fips_data.get(county.slice(0, -7) + w.state)[6];
-//     }
-//     // console.log("query:", query, "county:", fips_county);
-//     return fips_county;
-// }
-
-// function datatomap(w) {
-//     const fips_county = get_fips(w);
-//     if (fips_county) {
-//         const frq = frequency.get(fips_county);
-//         frequency.set((frq == undefined) ? 1 : frq + 1);
-//         return countymap.get(fips_county);
-//     } else {
-//         console.log(fips_county);
-//     }
-// }
 
 function centroid(feature) {
     const path = d3.geoPath();
@@ -267,32 +212,17 @@ function wiggle(position) {
     return position.map((w) => w + Math.random() * factor * 2 - factor);
 }
 
-// function get_radius_
+
 
 const projection1 = d3.geoMercator()
     .center([-97.42011851400741, 38.56265081052521])
     .translate([total_width / 2, total_height / 2])
     .scale(1900)
 
-
-// function location_of(zipcode) {
-//     const county = zipcode.substring(0,5);
-//     let loc = zll.default[county];
-//     if (loc == undefined) {
-//         loc = zll.default["0" + county.substring(0,4)];
-//         if (loc == undefined)
-//             console.log(county);
-//     }
-//     const proj = projection1([loc[1], loc[0]]);
-//     // console.log(proj);
-//     return proj;
-// }
-
-
-
 function transition() {
 
-    const duration = 40000;
+    // const duration = 40000;
+    const duration = 1000;
 
     d3.select("#treecbp-container").transition()
         .duration(duration)
@@ -300,13 +230,24 @@ function transition() {
         
     leaf.selectAll("rect").transition()
         .duration(duration)
-        .attr("height", "5px")
-        .attr("width", "5px")
-        .attr("x", 0)
-        .attr("y", 0)
-
+        .attr("height", d_to_radius)
+        .attr("width", d_to_radius)
+        .attr("x", d => -d_to_radius(d)/2.0)
+        .attr("y", d => -d_to_radius(d)/2.0)
+        .attr("rx", d_to_radius)
+        .attr("ry", d_to_radius)
     
-    leaf.selectAll("text").remove();
+    // leaf.filter(d => d.value > 293000000).append("text")
+    //     .attr("x", (d) => (d.x0 + d.x1 + d_to_radius(d)) / 2.0)
+    //     .attr("y", (d) => (d.y0 + d.y1 + d_to_radius(d)) / 2.0)
+    //     .attr("dy", "0.1em")
+    //     .attr("text-anchor", "middle")
+    //     .attr("font-size", font_size2)
+    //     .attr("fill", "black")
+    //     .attr("font-family", "proxima-nova")
+    //     .text(d => d.data.name.split(" ").slice(0, 2).join(" "))
+    
+    // leaf.selectAll("text").remove();
     
     leaf.transition().duration(duration)
         .attr("transform", d => `translate(${projection1([d.data.lon, d.data.lat])})`)
@@ -314,8 +255,88 @@ function transition() {
    
 }
 
+let f_index = 0;
+const findex_map = [-1, -1, 0];
+// const names = ["THE GEO GROUP, INC.", "DEPLOYED RESOURCES LLC"];
+const names = ["DEPLOYED RESOURCES LLC"];
+const locations = [{
+    x0: 1194,
+    x1: 1694,
+    y0: 230,
+    y1: 935
+}]
+
+function untransition() {
+
+    const duration = 1000;
+
+    const f_ind = findex_map[f_index];
+    if (f_ind == -1) {
+        return;
+    }
+    const l = locations[f_ind];
+    
+    // d3.select("#treecbp-container").transition().duration(duration).style("background-color","lightgrey");
+
+
+    leaf.filter(d => d.data.name == names[f_ind])
+        .attr("position", "absolute")
+        .attr("z-index", 99999)
+        // .raise().raise().raise()
+        // .raise().raise().raise()
+        // .raise().raise().raise()
+        // .raise().raise().raise()
+        // .raise().raise().raise()
+    console.log(leaf.filter(d => d.data.name == names[f_ind]));
+
+    leaf.filter(d => d.data.name == names[f_ind]).selectAll("rect").transition()
+        .duration(duration)
+        // .attr("x", (d) => d.x0)
+        // .attr("y", (d) => d.y0)
+        // .attr("width", (d) => d.x1 - d.x0)
+        // .attr("height", (d) => d.y1 - d.y0)
+        .attr("x", (d) => l.x0 - 100)
+        .attr("y", (d) => l.y0)
+        .attr("width", (d) => l.x1 - l.x0)
+        .attr("height", (d) => l.y1 - l.y0)
+        .attr("rx", 0)
+        .attr("ry", 0)
+        .style("fill-opacity", 1.0)
+
+
+
+    // d3.select("#treeice-container").append(leaf.filter(d => d.data.name == names[f_ind]).node());
+        
+    leaf.filter(d => d.data.name == names[f_ind])
+        .append("text")
+        .attr("x", (d) => (l.x0 + l.x1) / 2.0)
+        .attr("y", (d) => (l.y0 + l.y1) / 2.0)
+        .attr("dy", "0.5em")
+        .attr("text-anchor", "middle")
+        .attr("font-size", 15)
+        .attr("fill", "black")
+        .attr("font-family", "proxima-nova")
+        .text(d => d.data.name)
+        // .text(d => d.data.name.split(" ").slice(0, 2).join(" "))
+
+        leaf.filter(d => d.data.name == names[f_ind]).transition().duration(duration)
+            .attr("transform", `translate(0.0,0.0)`)
+            // .attr("x", -5800)
+            // .attr("y", 500)
+
+}
+
+// [].slice
+
 document.addEventListener("keydown", (e) => {
     if (e.key == "d") {
         transition();
+    }
+    if (e.key == "f") {
+        untransition();
+        f_index++;
+        if (f_index == findex_map.length) {
+            f_index = 0;
+        }
     }
 });

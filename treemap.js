@@ -111,6 +111,7 @@ leaf.append("rect")
     .attr("width", (d) => d.x1 - d.x0)
     .attr("height", (d) => d.y1 - d.y0)
     .style("stroke","black")
+    .style("stroke-width",0.5)
     .style("fill", (d) => ["#ffe3c8", "#ffecd7"][Math.floor(Math.random() * 2)])
     .style("fill-opacity", 1.0)
 
@@ -177,6 +178,11 @@ function font_sizepx(d) {return ((d.value / 1000000000) * 5 + 5);}
 
 function font_size(d) {return font_sizepx(d) + "px"}
 
+function font_sizepx2(d) {return (d.value / 3000000000) * 6 + 8}
+
+function font_size2(d) {return font_sizepx2(d) + "px"}
+
+
 function indent(d) {
     const maxCharsPerLine = Math.floor((d.x1 - d.x0) / (font_sizepx(d) * 0.6));
     return Math.floor(d.data.name.length / maxCharsPerLine) + 0.7;
@@ -205,124 +211,124 @@ function indent(d) {
 
 document.getElementById("treeice-container").append(svg.node());
 
-// const statemap = new Map(topojson.feature(us, us.objects.states)).features.map(d => [d.id, d]);
-
-
-// const countymap = new Map(topojson.feature(us, us.objects.counties).features.map(d => [d.id, d]));
-
-// const fips_data = new Map();
-// fips_text:
-//  `State Name,County Name,City Name,State Code,State FIPS Code,County Code,StCnty FIPS Code,City Code,StCntyCity FIPS Code
-// parseCSV(fips_text).splice(1).forEach((w) => {
-//     fips_data.set(w[1] + w[3], w);
-// });
-
-// function datatomap(w) {
-//     const county = w.county;
-//     const query = county + w.state;
-//     let fips_county = fips_data.get(query);
-//     if (!fips_county) {
-//         if (query == "DISTRICT OF COLUMBIADC")
-//             return countymap.get("11001");
-//         else if (query == "GREATER BRIDGEPORTCT" || query == "WESTERN CONNECTICUTCT")
-//             return countymap.get("09001");
-//         else if (query == "SOUTHEASTERN CONNECTICUTCT") 
-//             return countymap.get("09011");
-//         else if (query == "CAPITOLCT")
-//             return countymap.get("09003");
-//         else if (county.endsWith("(CITY)"))
-//             fips_county = fips_data.get(county.slice(0, -7) + w.state);
-//     }
-//     if (fips_county)
-//         return countymap.get(fips_county[6]);
-//     else {
-//         console.log(county);
-//     }
-// }
-
-// const map_svg = d3.sele
-
-// projection1()
-
-// document.getElementById("map-container").append(d3.geoPath(projection1)(land))
-
-
-// const path = d3.geoPath();
-
-// const map_svg = d3.create("svg")
-//       .attr("width", width)
-//       .attr("height", height)
-//       .attr("viewBox", [0, 0, width, height])
-//       .attr("style", "width: 100%; height: auto; height: intrinsic;");
-
-// map_svg.append("path")
-//       .datum(topojson.feature(us, us.objects.nation))
-//       .attr("fill", "#ddd")
-//       .attr("d", path);
-
-// map_svg.append("path")
-//     .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
-//     .attr("fill", "none")
-//     .attr("stroke", "white")
-//     .attr("stroke-linejoin", "round")
-//     .attr("d", path);
-
-
-// function centroid(feature) {
-//     const path = d3.geoPath();
-//     return path.centroid(feature);
-// }
-
-// function adjust(position) {
-//     const new_pos = [position[0] * total_width / width, position[1] * total_height / height];
-//     // console.log(new_pos);
-//     return new_pos;
-// }
-
-
 const projection1 = d3.geoMercator()
     .center([-97.42011851400741, 38.56265081052521])
     .translate([total_width / 2, total_height / 2])
     .scale(1900)
 
 
-// function location_of(zipcode) {
-//     const county = zipcode.substring(0,5);
-//     let loc = zll.default[county];
-//     if (loc == undefined) {
-//         loc = zll.default["0" + county.substring(0,4)];
-//         if (loc == undefined)
-//             console.log(county);
-//     }
-//     const proj = projection1([loc[1], loc[0]]);
-//     // console.log(proj);
-//     return proj;
-// }
+function d_to_radius(d) {
+    const val = Math.max(5,d.value / 10000000);
+    return val;
+}
 
 function transition() {
 
-    const duration = 40000;
+    // const duration = 40000;
+    const duration = 1000;
 
     d3.select("#treeice-container").transition().duration(duration).style("background-color",null);
         
     leaf.selectAll("rect").transition().duration(duration)
-            .attr("height", "5px")
-            .attr("width", "5px")
-            .attr("x", 0)
-            .attr("y", 0)
+            .attr("height", d_to_radius)
+            .attr("width", d_to_radius)
+            .attr("x", d => -d_to_radius(d)/2.0)
+            .attr("y", d => -d_to_radius(d)/2.0)
+            .attr("rx", d_to_radius)
+            .attr("ry", d_to_radius)
         
-    leaf.selectAll("text").remove();
+    // leaf.selectAll("text").remove();
+    // leaf.filter(d => d.value > 293000000).append("text")
+    //     .attr("x", (d) => (d.x1 + d.x2 + d_to_radius(d)) / 2.0)
+    //     .attr("y", (d) => (d.y1 + d.y2 + d_to_radius(d)) / 2.0)
+    //     .attr("dy", "0.1em")
+    //     .attr("text-anchor", "middle")
+    //     .attr("font-size", font_size2)
+    //     .attr("fill", "black")
+    //     .attr("font-family", "proxima-nova")
+    //     .text(d => d.data.name.split(" ").slice(0, 2).join(" "));
     
     leaf.transition().duration(duration)
         .attr("transform", d => `translate(${projection1([d.data.lon, d.data.lat])})`)
     // .attr("transform", d => `translate(${location_of(d.data.zip)})`)
     // .attr("transform", d => `translate(${adjust(centroid(datatomap(d.data)))})`)
-        
+       
+}
+
+
+// let prev_i = 0;
+let f_index = 0;
+const findex_map = [0, 1, -1];
+
+let names = ["THE GEO GROUP, INC.", "CORECIVIC, INC."];
+let locations = [{
+    x0: 106,
+    x1: 606,
+    y0: 230,
+    y1: 935
+}, {
+    x0: 650,
+    x1: 1150,
+    y0: 230,
+    y1: 935
+}];
+
+function untransition() {
+
+    const duration = 1000;
+
+    // d3.select("#treeice-container").transition().duration(duration).style("background-color","lightgrey");
+
+    // const names = ["THE GEO GROUP, INC.", "DEPLOYED RESOURCES LLC", "CORECIVIC, INC."];
+
+    console.log(leaf);
+    // console.log(leaf.filter(d => names.includes(d.name)));
+
+    const f_ind = findex_map[f_index];
+    if (f_ind == -1) {
+        return;
+    }
+    const l = locations[f_ind];
+    
+    // leaf.filter(d => names.includes(d.data.name)).selectAll("rect").transition()
+    leaf.filter(d => d.data.name == names[f_ind]).selectAll("rect").transition()
+        .duration(duration)
+        .attr("x", (d) => l.x0)
+        .attr("y", (d) => l.y0)
+        .attr("width", (d) => l.x1 - l.x0)
+        .attr("height", (d) => l.y1 - l.y0)
+        .attr("rx", 0)
+        .attr("ry", 0)
+
+    // leaf.filter(d => names.includes(d.data.name))
+    leaf.filter(d => d.data.name == names[f_ind])
+        .raise()
+        .append("text")
+        .attr("x", (d) => (l.x0 + l.x1) / 2.0)
+        .attr("y", (d) => (l.y0 + l.y1) / 2.0)
+        .attr("dy", "0.5em")
+        .attr("text-anchor", "middle")
+        .attr("font-size", 15)
+        .attr("fill", "black")
+        .attr("font-family", "proxima-nova")
+        .text(d => d.data.name)
+
+
+    leaf.filter(d => d.data.name == names[f_ind]).transition().duration(duration)
+            .attr("transform", `translate(0.0,0.0)`)
    
 }
+
 
 document.addEventListener("keydown", (e) => {
     if (e.key == "d") {
         transition();
+    }
+    if (e.key == "f") {
+        untransition();
+        f_index++;
+        if (f_index == findex_map.length) {
+            f_index = 0;
+        }
     }
 });

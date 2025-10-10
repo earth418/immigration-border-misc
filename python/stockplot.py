@@ -38,10 +38,14 @@ PALETTE = ["#97d8c4",
 Lora = load_google_font("Lora")
 Source = load_google_font("Source Sans 3")
 SourceLight = load_google_font("Source Sans 3", weight=200)
+SourceHeavy = load_google_font("Source Sans 3", weight='semi-bold')
+SourceVHeavy = load_google_font("Source Sans 3", weight='black')
 
 fontManager.addfont(Lora.get_file())
 fontManager.addfont(Source.get_file())
 fontManager.addfont(SourceLight.get_file())
+fontManager.addfont(SourceHeavy.get_file())
+fontManager.addfont(SourceVHeavy.get_file())
 
 def setup_theme():
     
@@ -95,14 +99,18 @@ def plot_stock_filename(stock_name, filename,withtext):
     setup_theme()
     fig, ax = plt.subplots()
     fig.set_size_inches(8,4.5)
+    fig.subplots_adjust(left=3/16, right=13/16, top=15/18, bottom=3/18)
 
     WINDOW_SIZE = 30
 
     # img = plt.imread("grid.png")
     # ax.imshow(img,vmin=0, vmax=2250) #, extent=[0, 365, 10.0, 40.0])
 
+
+    # line_color = PALETTE[0] if withtext else "#ffffff"
+    line_color = "#ffffff"
     # LINE IS HERE
-    line, = ax.plot(dates, datas, color=PALETTE[0] if withtext else "#ffffff", linewidth=1)
+    line, = ax.plot(dates, datas, color=line_color, linewidth=1)
     
     
     
@@ -123,13 +131,20 @@ def plot_stock_filename(stock_name, filename,withtext):
     ax.yaxis.set_ticks([])
     
     if withtext:
-        sdates = ["10/24","12/24","02/25","04/25","06/25","08/25"]
-        for i, d in enumerate(sdates):
-            fig.text(0.22 + 0.64 * i / (len(sdates) - 1), 0.07, d, font=SourceLight)
+        sdates = ["9/24","11/24","01/25","03/25","05/25","07/25"]
+        for d in sdates:
+            ax.text(dt.datetime.strptime(d,"%m/%y"), -0.05, d,
+                     font=SourceHeavy, color='black', transform=ax.get_xaxis_transform())
+                    
+            # fig.text(0.22 + 0.64 * i / (len(sdates) - 1), 0.07, d, 
+            #          font=SourceHeavy, color='black')
             
-        vals = np.arange(15.0, 40.0, 5.0)
+        vals = np.arange(15, 40, 5)
         for i, val in enumerate(vals):
-            fig.text(0.09, 0.23 + 0.51 * i / (len(vals) - 1), str(val), font=SourceLight)
+            ax.text(-0.04, val, str(val), font=SourceHeavy, color='black', transform=ax.get_yaxis_transform())
+            
+            # fig.text(0.09, 0.23 + 0.51 * i / (len(vals) - 1), str(val), 
+            #          font=SourceHeavy, color='black')
       
     # minorLocatorX = MultipleLocator(1) # every day -- 365/thing
     # minorLocatorY = MultipleLocator(30 / len(dates))
@@ -137,20 +152,22 @@ def plot_stock_filename(stock_name, filename,withtext):
     # ax.xaxis.set_minor_locator(minorLocatorX)
     # ax.yaxis.set_minor_locator(minorLocatorY)
     
-    if withtext:
-        for i in np.linspace(10.0, 40.0, 30):
-            ax.axhline(i, linewidth=0.1, color="#aaaaaa7a")
+    
+    # 'GRID LINES GENERATE HERE'
+    # if withtext:
+    #     for i in np.linspace(10.0, 40.0, 30):
+    #         ax.axhline(i, linewidth=0.1, color="#aaaaaa7a")
 
-        for i in np.linspace(dates[0], dates[-1], int(30*16/9)):
-            ax.axvline(i, linewidth=0.1, color="#aaaaaa7a")
+    #     for i in np.linspace(dates[0], dates[-1], int(30*16/9)):
+    #         ax.axvline(i, linewidth=0.1, color="#aaaaaa7a")
         
     
     # plt.rc('text', usetex=True)
     # plt.rc('axes', linewidth=2)
     # plt.rc('font', weight='light')
     
-    ax.xaxis.set_tick_params(labelfontfamily=SourceLight.get_name(), labelcolor="#ffffffaa")
-    ax.yaxis.set_tick_params(labelfontfamily=SourceLight.get_name(), labelcolor="#ffffffaa")
+    ax.xaxis.set_tick_params(labelfontfamily=Source.get_name(), labelcolor="#ffffffaa")
+    ax.yaxis.set_tick_params(labelfontfamily=Source.get_name(), labelcolor="#ffffffaa")
     # ax.xaxis.set_fontname(SourceLight.get_name())
     
     if not withtext:
@@ -159,33 +176,60 @@ def plot_stock_filename(stock_name, filename,withtext):
         ax.spines['left'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
     else:
-        [ax.spines[spax].set(color="white", linewidth=0.25) for spax in ax.spines]
+        [ax.spines[spax].set(color="black", linewidth=1) for spax in ax.spines]
     
     ax.xaxis.set_visible(withtext)
     ax.yaxis.set_visible(withtext)
+
     
     
     # ax.yaxis.set_visible(False)
     
     green = not withtext
     
-    if green:
+    if green or True:
         fig.set_facecolor("#00ff00")
         ax.set_facecolor("#00ff00")
     else:
-        fig.set_facecolor(PALETTE[3])
-        ax.set_facecolor(PALETTE[4])
+        # fig.set_facecolor(PALETTE[3])
+        # ax.set_facecolor(PALETTE[4])
+        # fig.set_facecolor("#776F6F")
+        # fig.set_im
+        
+        image = plt.imread("base_resized.png")
+        background_ax = plt.axes([0,0,1,1])
+        background_ax.set_zorder(-2)
+        # background_ax.patch.set_alpha(0.6)
+        background_ax.imshow(image, aspect='auto')
+        
+        background_ax2 = plt.axes([0,0,1,1])
+        background_ax2.set_zorder(-1)
+        background_ax2.set_facecolor("#ffffff")
+        background_ax2.patch.set_alpha(0.75)
+        
+        ax.set_facecolor("#B3A4A4")
+        ax.patch.set_alpha(0.5)
+        # plt.
+        # background_ax.axh
+        
+        # for i in np.linspace(0.0, 1079.0, 36):
+        for i in np.arange(0, 1080, 30):
+            background_ax.axhline(i, linewidth=0.5, color="#aaaaaa7a")
+
+        # for i in np.linspace(0.0, 1919.0, 64):
+        for i in np.arange(0, 1920, 30):
+            background_ax.axvline(i, linewidth=0.5, color="#aaaaaa7a")
 
     if withtext:
         # Source.set_weight('medium')
-        ax.set_title(stock_name, fontproperties=Source, fontsize=24,fontweight="bold")
+        ax.set_title(stock_name, fontproperties=Source, fontsize=24,fontweight="bold",color='black')
 
     if withtext:
-        colors = [PALETTE[0], PALETTE[0], PALETTE[1]]
-        # colors = ['white', 'white']
+        # colors = [PALETTE[0], PALETTE[0], PALETTE[1]]
+        colors = ['black', 'black']
         ax.text(0.04,0.825,"$",transform=ax.transAxes,fontsize=16,color=colors[0])
-        ax.text(0.06,0.805,str(datas[0]),transform=ax.transAxes,fontsize=30,color=colors[0])
-        ax.text(0.05,0.75,"",transform=ax.transAxes,fontsize=8,color=colors[1])
+        amt = ax.text(0.06,0.805,str(datas[0]),transform=ax.transAxes,fontsize=30,color=colors[0])
+        chg = ax.text(0.05,0.75,"",transform=ax.transAxes,fontsize=8,color=colors[1])
         # ax.set_facecolor(PALETTE[-1])
         # fig.set_facecolor(PALETTE[-2])
 
@@ -205,16 +249,18 @@ def plot_stock_filename(stock_name, filename,withtext):
         line.set_data(date, data)
         # ax.set_ylim(min(data)-5, max(data)+5)
         
+        tcolors = ["#FFFFFF","#000000"]
+        
         if withtext:
-            ax.texts[1].set_text(f'{data[-1]}')
+            amt.set_text(f'{data[-1]}')
             if i > 30 and i < len(datas):
                 diff_lastm = datas[i] - datas[i-30]
                 if diff_lastm >= 0:
-                    ax.texts[2].set_text(f'+{diff_lastm:2.2f} (+{100*diff_lastm/(datas[i-30]):2.2f}%) past month')
-                    ax.texts[2].set_color(PALETTE[0])
+                    chg.set_text(f'+{diff_lastm:2.2f} (+{100*diff_lastm/(datas[i-30]):2.2f}%) past month')
+                    chg.set_color(tcolors[0])
                 else:
-                    ax.texts[2].set_text(f'-{-diff_lastm:2.2f} (-{-100*diff_lastm/(datas[i-30]):2.2f}%) past month')
-                    ax.texts[2].set_color(PALETTE[1])
+                    chg.set_text(f'-{-diff_lastm:2.2f} (-{-100*diff_lastm/(datas[i-30]):2.2f}%) past month')
+                    chg.set_color(tcolors[1])
             
         # if len(ax.texts) > 0:
         #     ax.texts[0].remove()
@@ -229,7 +275,7 @@ def plot_stock_filename(stock_name, filename,withtext):
     # anim(60)
     # fig.savefig("testing.png",dpi=300)
     a = animation.FuncAnimation(fig, anim, blit=False, frames=len(datas), interval=100)
-    a.save(("notext_" if not withtext else "_") + stock_name.split(":")[-1] + "_stocksplot.mp4",dpi=300)
+    a.save(("notext_" if not withtext else "green_") + stock_name.split(":")[-1] + "_stocksplot.mp4",dpi=300)
     # print("Done with " + stock_name)
     # plt.show()
     
