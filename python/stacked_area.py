@@ -21,8 +21,8 @@ fontManager.addfont(SourceLight.get_file())
 
 sns.set_theme(font=Lora.get_name(), 
                 style={"axes.grid":False,
-                        "xtick.bottom":False,
-                        "ytick.left":False})
+                        "xtick.bottom":False})
+                        # "ytick.left":False})
 
 def get_data_from(filename):
     dic = []
@@ -100,15 +100,15 @@ color_list = [colors[c] for c in order]
 
 fig, ax = plt.subplots()
 fig.set_size_inches(8,4.5)
-fig.subplots_adjust(left=0.15,right=0.85)
+fig.subplots_adjust(left=0.15,right=0.85, bottom=0.2)
 # fig.set_facecolor("#3354b9")
 
 
 with_text = False
 
-if not with_text:
-    fig.set_facecolor("#00ff00")
-    ax.set_facecolor("#00ff00")
+# if not with_text:
+fig.set_facecolor("#00ff00")
+ax.set_facecolor("#00ff00")
 
 textcolor = "black"
 if not with_text:
@@ -130,7 +130,10 @@ ax.spines['left'].set_color(edgecolor)
 
 if not with_text:
     ax.xaxis.set_visible(False)
-    ax.yaxis.set_visible(False)
+    # ax.yaxis.set_visible(False)
+
+ax.tick_params("y", colors="white")
+
 
 def start():
     anim(0, ax)
@@ -154,6 +157,7 @@ if with_text:
 
 def anim(i, ax):
     ax.cla()
+    ax.set_yticks(range(20,61,20))
     # i = i + len(data) - 10
     # ax.tick_params(axis="y",pad=-4)
     # ax.tick_params(axis="x",pad=-4)
@@ -184,12 +188,12 @@ def anim(i, ax):
     #     ax.set_yticks(range(10,70,10))
     #     ax.set_yticklabels([f'{a}' for a in range(10,70,10)])
     #     ax.set_xticks(range(int(years[0]),int(years[-1])+1,3))
-    ax.set_yticks([])
+    # ax.set_yticks([])
     ax.set_xticks([])
     
     tt = 0
     # i <= len(data)
-    if i > 0 and with_text:
+    if i > 0 and (True or with_text):
         for dd in data_in_order[i-1]:
             if dd[0] == "atf" or dd[0] == "usms" or dd[1] == 0:
                 tt += dd[1]
@@ -217,6 +221,129 @@ for y in ylabels:
 for x in xlabels:
     x.remove()
 
+
+def bbb3():
+    
+    imm = []
+    non_imm = []
+    for year in data_in_order:
+        imm_t = non_imm_t = 0
+        for x, y in year:
+            if x == "ice" or x == "cbp":
+                imm_t += y
+            elif x == "uscg":
+                imm_t += y * 0.25
+                non_imm_t += y * 0.75
+            else:
+                non_imm_t += y
+        imm.append(imm_t)
+        non_imm.append(non_imm_t)
+
+    ax.set_xticks([])
+    # ax.set_yticks(range(20, 255, 20))
+    ax.tick_params("y", colors="white")
+    # plt.rc()
+    immi_color = "#ffd060"
+    non_immi_c = "#4A9EA0"
+
+    year1 = [non_imm[-1],imm[-1]]
+    year2 = [non_imm[-1] + 1.1, imm[-1] + 167.1]
+    
+    data2 = [[non_imm[i], imm[i]] for i in range(0,len(data_in_order),INTERP)]
+    years2 = list(np.linspace(2003, 2025, len(data2))) #+ [2026]
+
+    ax.stackplot(years2, np.transpose(data2), 
+            colors=[non_immi_c,immi_color],
+            linewidth=0.5,
+            edgecolor=edgecolor,)
+            # alpha = alph)
+   
+    ax.set_ylim(0, 60)
+    
+    
+    # plt.autoscale(False)
+    # fig.set
+    
+    def anim3(i, ax):
+        
+        ax.cla()
+        ax.spines['bottom'].set_position(('data', 0))
+        # ax.spines["left"].set_clip_on(False)
+    
+        ax.set_yticks(range(20, 255, 20))
+        
+        ax.stackplot(years2, np.transpose(data2), 
+            colors=[non_immi_c,immi_color],
+            linewidth=0.5,
+            edgecolor=edgecolor,
+            alpha = 1.0 - min(1.0, max(0.0,(i - 10)) / 30))
+   
+        i = i - 10
+        ax.set_xlim(2003 + 0.6 * min(30,max(0,i)), 2025 + 0.6 * min(30,max(0,i)))
+
+        if i < 0:
+            return ax,
+   
+        frac = min(1.0,(max(50,i) - 50) / 100)
+        
+        # plt.bar()
+        ax.bar(years2[-1]+1.0, year1[0], 2.0, 0.0, color=non_immi_c, edgecolor=edgecolor, linewidth=0.5,clip_on=False)
+        ax.bar(years2[-1]+1.0, year1[1], 2.0, year1[0], color=immi_color, edgecolor=edgecolor, linewidth=0.5,clip_on=False)
+    
+        # if frac < 0.1:
+        ax.text(years2[-1] + 0.0, -4.0 - 10*frac,  f'FY 2024', color="white")
+                    # alpha=1.0-min(1, frac*20))
+            
+        # if frac < 0.3:
+        ax.text(years2[-1] + 2.1, year1[0] / 2.0, f'OTHER: ${year1[0]:2.2f}B',color="white")
+                # alpha=1.0-min(1, max(0.0, frac*10-0.5)))
+        ax.text(years2[-1] + 2.1,(year1[0] + year1[1] / 2.0), f'IMMIGRATION: ${year1[1]:2.2f}B', 
+                fontsize=11,
+                color="white")
+                    # alpha=1.0-min(1, max(0.0, frac*5-1.5)))
+
+        
+        # if i < 20: 
+        
+        
+        # def alpha_from_height(ht):
+        #     bottom = 150 * frac - 20
+            
+            
+
+        ax.text(years2[-1] + 10.0, -8.0 - 20*frac, f'FY 2025\n+BBB',color='white',)# alpha = 1.0-min(1, frac*20))
+        
+        # if frac < 0.3:
+        ax.text(years2[-1] + 12.5, year2[0] / 2.0, f'OTHER: ${year2[0]:2.2f}B',color="white")
+                # alpha=1.0-min(1, max(0.0, frac*5-1.5)))
+        
+        
+        ax.bar(years2[-1] + 11.0, year2[0], 2.0, 0.0, color=non_immi_c, edgecolor=edgecolor, linewidth=0.5,clip_on=False)
+        
+        if frac > 0.25 *0:
+            immi_money = year2[1] * (4 / 3) * (frac - 0.25)
+            immi_money = year2[1] * frac
+            ax.text(years2[-1] + 12.5,(year2[0] + immi_money / 1.0),
+                    f'IMMIGRATION: ${immi_money:2.2f}B',
+                    fontsize = 11,
+                    color="white")
+        
+            ax.bar(years2[-1] + 11.0, immi_money, 2.0, year2[0], color=immi_color, edgecolor=edgecolor, linewidth=0.5,clip_on=False)
+   
+            ax.set_ylim(0 + 170 * (frac - 0.0), 70 + 170 * (frac - 0.0))
+
+        if i > 170:
+            ax.set_ylim(170 * (1.0 - (min(220,i) - 170) / 50), 240)
+        
+        return ax,
+    
+    # c = animation.FuncAnimation(fig, anim3, fargs=(ax,), interval=33,frames=250)
+    # c.save("stacked_to_bar.mp4", dpi=240)
+
+
+    # plt.show()
+
+bbb3()
 
 # a.save("stacked.gif",dpi=300)
 
@@ -247,7 +374,8 @@ def bbb2():
     year2 = [non_imm[-1] + 1.1, imm[-1] + 167.1]
     
     data2 = [[non_imm[i], imm[i]] for i in range(0,len(data_in_order),INTERP)]
-    years2 = list(np.linspace(2003, 2026, len(data2))) #+ [2026]
+    years2 = list(np.linspace(2003, 2025, len(data2))) #+ [2026]
+   
     # print()
     full_data2 = data2
     ax.set_xlim(years2[0], years2[-1] + 3)
@@ -375,4 +503,4 @@ def bbb2():
     # plt.show()
 
     
-bbb2()
+# bbb2()

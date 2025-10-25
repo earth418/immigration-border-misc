@@ -101,7 +101,6 @@ const leaf = svg.selectAll("g")
         .attr("y", (d) => d.y0+20)
         .attr("href", (d) => `#`)
 
-const format = d3.format(",d");
 leaf.append("title")
     .text(d => `${d.data.name.slice(1).replace(/\//g, ".")}\n${format(d.value)}`)
 
@@ -174,7 +173,7 @@ function wrapText(txt, text, width) {
     });
 }
 
-function font_sizepx(d) {return ((d.value / 1000000000) * 5 + 5);}
+function font_sizepx(d) {return ((d.value / 1000000000) * 12 + 6);}
 
 function font_size(d) {return font_sizepx(d) + "px"}
 
@@ -188,56 +187,64 @@ function indent(d) {
     return Math.floor(d.data.name.length / maxCharsPerLine) + 0.7;
 }
 
-// leaf.filter(d => d.value > 73000000).append("text")
-//     .attr("x", (d) => (d.x0 + d.x1) / 2.0 )
-//     .attr("y", (d) => (d.y1 + d.y0) / 2.0)
-//     .attr("dy", "0.5em")
-//     .attr("text-anchor", "middle")
-//     .attr("font-size", font_size)
-//     .attr("fill", "black")
-//     .attr("font-family", "proxima-nova")
-//     // .text(d => d.data.name)
-//     .each(function(d) { 
-//         const width = Math.max(0, Math.floor(d.x1 - d.x0) - 4);
-//         wrapText(d.data.name, d3.select(this), width);
-//     })
-//     .filter(d => d.value > 191000000).append("tspan")
-//         .text(d => `$${format(Math.floor(d.value / 1000000))} million`)
-//         .attr("x", (d) => (d.x0 + d.x1) / 2.0)
-//         .attr("y", (d) => (d.y1 + d.y0) / 2.0)
-//         .attr("dy", (d) => indent(d) + "em")
-//         .attr("font-size", font_size)
-//         .attr("fill", "black")
+leaf.filter(d => d.value > 195000000).append("text")
+    .attr("x", (d) => (d.x0 + d.x1) / 2.0 )
+    .attr("y", (d) => (d.y1 + d.y0) / 2.0)
+    // .attr("dy", "0.5em")
+    .attr("text-anchor", "middle")
+    .attr("font-size", font_size)
+    .attr("fill", "black")
+    .attr("font-family", "\"Source Sans 3\"")
+    // .text(d => d.data.name)
+    .each(function(d) { 
+        const width = Math.max(0, Math.floor(d.x1 - d.x0) - 4);
+        wrapText(d.data.name, d3.select(this), width);
+    })
+    .append("tspan")
+        .text(d => `$${format(d.value)}`)
+        .attr("x", (d) => d.x1)
+        .attr("y", (d) => d.y1)
+        .attr("dy", (d) => "-0.5em")
+        .attr("dx", (d) => "-0.25em")
+        .attr("text-anchor", "end")
+        .attr("font-size", 16)
+        .attr("fill", "black")
+        .attr("weight", "bold")
 
 document.getElementById("treeice-container").append(svg.node());
 
 const projection1 = d3.geoMercator()
-    .center([-97.42011851400741, 38.56265081052521])
+    // .center([-97.42011851400741, 38.56265081052521])
+    .center([-96.7, 38.5])
     .translate([total_width / 2, total_height / 2])
-    .scale(1900)
+    .scale(1770)
 
 
 function d_to_radius(d) {
-    const val = Math.max(5,d.value / 10000000);
-    return val;
+    // const val = Math.max(5,d.value / 10000000);
+    const val = Math.max(5,Math.sqrt(d.value) / 500);
+    return dots ? 5 : val;
 }
 
 function transition() {
 
     // const duration = 40000;
-    const duration = 1000;
+    // const duration = 1000;
 
-    d3.select("#treeice-container").transition().duration(duration).style("background-color",null);
+    d3.select("#treeice-container").transition().duration(treemap_duration).style("background-color",null);
         
-    leaf.selectAll("rect").transition().duration(duration)
+    leaf.selectAll("rect").transition().duration(treemap_duration)
             .attr("height", d_to_radius)
             .attr("width", d_to_radius)
             .attr("x", d => -d_to_radius(d)/2.0)
             .attr("y", d => -d_to_radius(d)/2.0)
             .attr("rx", d_to_radius)
             .attr("ry", d_to_radius)
+            .style("fill-opacity", 0.6)
         
-    // leaf.selectAll("text").remove();
+    leaf.selectAll("text").transition().duration(treemap_duration / 4.0)
+        .style("fill-opacity", 0.0)
+        .on("end", () => d3.select(this).remove());
     // leaf.filter(d => d.value > 293000000).append("text")
     //     .attr("x", (d) => (d.x1 + d.x2 + d_to_radius(d)) / 2.0)
     //     .attr("y", (d) => (d.y1 + d.y2 + d_to_radius(d)) / 2.0)
@@ -248,7 +255,7 @@ function transition() {
     //     .attr("font-family", "proxima-nova")
     //     .text(d => d.data.name.split(" ").slice(0, 2).join(" "));
     
-    leaf.transition().duration(duration)
+    leaf.transition().duration(treemap_duration)
         .attr("transform", d => `translate(${projection1([d.data.lon, d.data.lat])})`)
     // .attr("transform", d => `translate(${location_of(d.data.zip)})`)
     // .attr("transform", d => `translate(${adjust(centroid(datatomap(d.data)))})`)
@@ -262,20 +269,35 @@ const findex_map = [0, 1, -1];
 
 let names = ["THE GEO GROUP, INC.", "CORECIVIC, INC."];
 let locations = [{
-    x0: 106,
-    x1: 606,
+    // x0: 106,
+    // x1: 606,
+    x0: 300,
+    x1: 300,
     y0: 230,
-    y1: 935
+    y1: 410,
+    // y1: 935
 }, {
-    x0: 650,
-    x1: 1150,
-    y0: 230,
-    y1: 935
+    // x0: 650,
+    // x1: 1150,
+    x0: 300,
+    x1: 300,
+    y0: 430,
+    y1: 620
 }];
+
+
+// const top_svg = d3.create("svg")
+//     .attr("viewBox", [0, 0, total_width, total_height])
+//     .attr("width", total_width * 0.75)
+//     .attr("height", total_height * 0.75)
+//     .attr("style", "max-width: 100%; height: auto; font: 10px; font-family: Source Sans 3;");
+
+// document.getElementById("top-container").append(top_svg.node());
+const top_svg = d3.select("#top-svg");
 
 function untransition() {
 
-    const duration = 1000;
+    // const duration = 10000;
 
     // d3.select("#treeice-container").transition().duration(duration).style("background-color","lightgrey");
 
@@ -290,33 +312,90 @@ function untransition() {
     }
     const l = locations[f_ind];
     
+    top_svg.append(() => leaf.filter(d => d.data.name == names[f_ind]).node());
+
+
     // leaf.filter(d => names.includes(d.data.name)).selectAll("rect").transition()
     leaf.filter(d => d.data.name == names[f_ind]).selectAll("rect").transition()
-        .duration(duration)
+        .duration(bar_duration)
         .attr("x", (d) => l.x0)
         .attr("y", (d) => l.y0)
-        .attr("width", (d) => l.x1 - l.x0)
+        .attr("width", (d) => d.value / bar_divisor)
         .attr("height", (d) => l.y1 - l.y0)
         .attr("rx", 0)
         .attr("ry", 0)
+        .style("fill-opacity", 0.8)
 
     // leaf.filter(d => names.includes(d.data.name))
     leaf.filter(d => d.data.name == names[f_ind])
-        .raise()
         .append("text")
-        .attr("x", (d) => (l.x0 + l.x1) / 2.0)
+        .attr("x", (d) => (l.x0 + d.value / bar_divisor / 2.0))
         .attr("y", (d) => (l.y0 + l.y1) / 2.0)
-        .attr("dy", "0.5em")
+        // .attr("dy", "-0.5em")
         .attr("text-anchor", "middle")
-        .attr("font-size", 15)
+        .attr("font-size", 30)
         .attr("fill", "black")
-        .attr("font-family", "proxima-nova")
-        .text(d => d.data.name)
+        .attr("font-family", "\"Source Sans 3\"")
+        .style("fill-opacity", 1.0)
+        // .text(d => d.data.name)
+        .each(function(d) { 
+            const width = Math.max(0,  d.value / bar_divisor);
+            const txt = d3.select(this);
+            const nl = wrapText(d.data.name, txt, width);
+        })
+        
+        // .raise()
+
+    leaf.filter(d => d.data.name == names[f_ind])
+        .append("text")
+        .attr("x", (d) => (l.x0 + d.value / bar_divisor))
+        .attr("y", (d) => l.y1)
+        .attr("dy", (d) => "-0.5em")
+        .attr("dx", (d) => "-0.25em")
+        .attr("text-anchor", "end")
+        .attr("font-size", 30)
+        .attr("fill", "black")
+        .attr("font-family", "\"Source Sans 3\"")
+        .style("fill-opacity", 1.0)
+        .text(d => `$${format(d.value)}`)
 
 
-    leaf.filter(d => d.data.name == names[f_ind]).transition().duration(duration)
+    leaf.filter(d => d.data.name == names[f_ind]).transition().duration(bar_duration)
             .attr("transform", `translate(0.0,0.0)`)
    
+}
+
+function bar_expand() {
+    const bars = leaf.filter(d => names.includes(d.data.name));
+    // bars.selectAll("text").remove();
+    bars.selectAll("text").transition().duration(bar_expand_duration / 4.0)
+        .style("fill-opacity", 0.0)
+        .on("end", () => d3.select(this).remove());
+
+    const factor = 3.65; // from American Immigraetion Council, 265% increase in deetention budget
+    // https://www.americanimmigrationcouncil.org/press-release/congress-approves-unprecedented-funding-mass-detention-deportation-2025/
+
+    // console.log(bars._groups);
+    // const new_bars = bars._groups.map((w) => w.cloneNode(true));
+    // const new_bars = bars.node().cloneNode(true);
+    // bars.attr("border", "2px 2px 0px 0px solid red");
+
+    // bars.each(function(d) {
+    //     const bar = d3.select(this);
+        // const new_bar = d3.select(this).clone(true);
+        // const money = d.data.value;
+    const money = 5317000000; // total to GEO,CC,DeRes
+    bars.selectAll("rect").transition().duration(bar_expand_duration / 2.0)
+        .style("fill", "#efb184ff")
+        .attr("height", 820-230)
+        .attr("y", 230)
+        .attr("x", 300)
+        .attr("width", money / bar_divisor2)
+        // .attr("x", d3.select(this).attr("x") + money / bar_divisor)
+        .on("end", function() {
+            bars.remove();
+        });
+    // });
 }
 
 
@@ -330,5 +409,8 @@ document.addEventListener("keydown", (e) => {
         if (f_index == findex_map.length) {
             f_index = 0;
         }
+    }
+    if (e.key == "g") {
+        bar_expand();
     }
 });

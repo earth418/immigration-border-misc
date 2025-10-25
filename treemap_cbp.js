@@ -40,6 +40,8 @@ function parseCSV(str) {
 }
 
 
+// Math.random().
+
 const array_data = parseCSV(geocoded_cbp);
 array_data[0] = ["origin","","","","","","","",""] // this is the name layer anyway
 
@@ -86,7 +88,7 @@ const svg = d3.create("svg")
     .attr("viewBox", [0, 0, total_width, total_height])
     .attr("width", total_width)
     .attr("height", total_height)
-    .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
+    .attr("style", "max-width: 100%; height: auto; font: 10px; font-family: \"Source Sans 3\", sans-serif;");
 
 const leaf = svg.selectAll("g")
     .data(root.leaves())
@@ -96,7 +98,7 @@ const leaf = svg.selectAll("g")
         .attr("y", (d) => d.y0+20)
         .attr("href", (d) => `#`)
 
-const format = d3.format(",d");
+
 leaf.append("title")
     .text(d => `${d.data.name.slice(1).replace(/\//g, ".")}\n${format(d.value)}`)
 
@@ -110,10 +112,36 @@ leaf.append("rect")
     .style("fill", (d) => ["#fee5a0", "#ffcf52", "#ffb803"][Math.floor(Math.random() * 3)])
     .style("fill-opacity", 0.9)
 
+leaf.filter(d => d.value > 410000000).append("text")
+    .attr("x", (d) => (d.x0 + d.x1) / 2.0)
+    .attr("y", (d) => (d.y1 + d.y0) / 2.0)
+    // .attr("dy", "-0.5em")
+    .attr("text-anchor", "middle")
+    .attr("font-size", font_size2)
+    .attr("fill", "black")
+    .style("font-family", "Source Sans 3")
+    .each(function(d) { 
+        const width = Math.max(0, Math.floor(d.x1 - d.x0) - 4);
+        const txt = d3.select(this);
+        const nl = wrapText(d.data.name, txt, width);
+        // console.log(nl);
+        // d3.select(this)
+    })
+    .append("tspan")
+        .text(d => `$${format(d.value)}`)
+        .attr("x", (d) => d.x1)
+        .attr("y", (d) => d.y1)
+        .attr("dy", (d) => "-0.5em")
+        .attr("dx", (d) => "-0.25em")
+        .attr("text-anchor", "end")
+        .attr("font-size", 16)
+        .attr("fill", "black")
+        .attr("weight", "bold")
+    // .filter(d => d.value > 410000000)
 
 function wrapText(txt, text, width) {
-     text.each(function() {
-        const text = d3.select(this);
+    //  text.each(function() {
+        // const text = d3.select(this);
         const words = txt.split(/\s+/);
         const fontSize = parseFloat(text.attr("font-size")) || 10;
         const charWidth = fontSize * 0.6; // Approximate character width
@@ -166,10 +194,11 @@ function wrapText(txt, text, width) {
                 .attr("dy", lineNumber * lineHeight - dy + "em")
                 .text(currentLine.join(" "));
         }
-    });
+        return lineNumber;
+    // });
 }
 
-function font_sizepx2(d) {return (d.value / 3000000000) * 4 + 8}
+function font_sizepx2(d) {return (d.value / 3000000000) * 14 + 9}
 
 function font_size2(d) {return font_sizepx2(d) + "px"}
 
@@ -180,62 +209,44 @@ function indent2(d) {
 
 function d_to_radius(d) {
     const val = Math.max(5,Math.sqrt(d.value) / 500);
-    return val;
+    return dots ? 5 : val;
 }
-
-    // .each(function(d) { 
-    //     const width = Math.max(0, Math.floor(d.x1 - d.x0) - 4);
-    //     wrapText(d.data.name, d3.select(this), width);
-    // })
-//     .filter(d => d.value > 400000000).append("tspan")
-//         .text(d => `$${format(Math.floor(d.value / 1000000))} million`)
-//         .attr("x", (d) => (d.x0 + d.x1) / 2.0)
-//         .attr("y", (d) => (d.y1 + d.y0) / 2.0)
-//         .attr("dy", (d) => indent2(d) + "em")
-//         // .attr("dy", (d) => (d.value < 400000000) ? "3.0em" : "1.0em")
-//         .attr("font-size", font_size2)
-//         .attr("fill", "black")
 
 document.getElementById("treecbp-container").append(svg.node());
 
-function centroid(feature) {
-    const path = d3.geoPath();
-    return path.centroid(feature);
-}
-
-function adjust(position) {
-    return [position[0] * total_width / width, position[1] * total_height / height];
-}
-
-function wiggle(position) {
-    const factor = 5;
-    return position.map((w) => w + Math.random() * factor * 2 - factor);
-}
 
 
 
 const projection1 = d3.geoMercator()
-    .center([-97.42011851400741, 38.56265081052521])
+    .center([-96.7, 38.5])
     .translate([total_width / 2, total_height / 2])
-    .scale(1900)
+    .scale(1770)
 
 function transition() {
 
     // const duration = 40000;
-    const duration = 1000;
+    // const duration = 1000;
 
     d3.select("#treecbp-container").transition()
-        .duration(duration)
+        .duration(treemap_duration)
         .style("background-color",null);
         
     leaf.selectAll("rect").transition()
-        .duration(duration)
+        .duration(treemap_duration)
         .attr("height", d_to_radius)
         .attr("width", d_to_radius)
         .attr("x", d => -d_to_radius(d)/2.0)
         .attr("y", d => -d_to_radius(d)/2.0)
         .attr("rx", d_to_radius)
         .attr("ry", d_to_radius)
+        .style("fill-opacity", 0.6)
+
+        
+    // leaf.selectAll("text").remove();
+    leaf.selectAll("text").transition().duration(treemap_duration / 4.0)
+        .style("fill-opacity", 0.0)
+        .on("end", () => d3.select(this).remove());
+    
     
     // leaf.filter(d => d.value > 293000000).append("text")
     //     .attr("x", (d) => (d.x0 + d.x1 + d_to_radius(d)) / 2.0)
@@ -249,10 +260,11 @@ function transition() {
     
     // leaf.selectAll("text").remove();
     
-    leaf.transition().duration(duration)
+    leaf.transition().duration(treemap_duration)
         .attr("transform", d => `translate(${projection1([d.data.lon, d.data.lat])})`)
         // .attr("transform", d => `translate(${location_of(d.data.zip)})`)
-   
+    .transition().duration(treemap_duration).style("fill-opacity", 0.0);
+  
 }
 
 let f_index = 0;
@@ -260,15 +272,29 @@ const findex_map = [-1, -1, 0];
 // const names = ["THE GEO GROUP, INC.", "DEPLOYED RESOURCES LLC"];
 const names = ["DEPLOYED RESOURCES LLC"];
 const locations = [{
-    x0: 1194,
-    x1: 1694,
-    y0: 230,
-    y1: 935
+    // x0: 1194,
+    x0: 300,
+    x1: 300,
+    y0: 640,
+    y1: 820
+    // y0: 230,
+    // y1: 935
 }]
+
+
+const top_svg = d3.select("#top-svg");
+
+top_svg.append("rect")
+    .attr("y", 0)
+    .attr("height", 1080)
+    .attr("x", 0)
+    .attr("width", 1920)
+    .style("fill-opacity", 0.0)
+    .style("fill","lightgrey")
 
 function untransition() {
 
-    const duration = 1000;
+    // const duration = 10000;
 
     const f_ind = findex_map[f_index];
     if (f_ind == -1) {
@@ -278,65 +304,165 @@ function untransition() {
     
     // d3.select("#treecbp-container").transition().duration(duration).style("background-color","lightgrey");
 
-
-    leaf.filter(d => d.data.name == names[f_ind])
-        .attr("position", "absolute")
-        .attr("z-index", 99999)
-        // .raise().raise().raise()
-        // .raise().raise().raise()
-        // .raise().raise().raise()
-        // .raise().raise().raise()
-        // .raise().raise().raise()
-    console.log(leaf.filter(d => d.data.name == names[f_ind]));
-
     leaf.filter(d => d.data.name == names[f_ind]).selectAll("rect").transition()
-        .duration(duration)
+        .duration(bar_duration)
         // .attr("x", (d) => d.x0)
         // .attr("y", (d) => d.y0)
         // .attr("width", (d) => d.x1 - d.x0)
         // .attr("height", (d) => d.y1 - d.y0)
-        .attr("x", (d) => l.x0 - 100)
+        .attr("x", (d) => l.x0)
         .attr("y", (d) => l.y0)
-        .attr("width", (d) => l.x1 - l.x0)
+        .attr("width", (d) => d.value / bar_divisor)
         .attr("height", (d) => l.y1 - l.y0)
         .attr("rx", 0)
         .attr("ry", 0)
-        .style("fill-opacity", 1.0)
+        .style("fill-opacity", 0.8)
 
-
-
+    top_svg.append(() => leaf.filter(d => d.data.name == names[f_ind]).node());
     // d3.select("#treeice-container").append(leaf.filter(d => d.data.name == names[f_ind]).node());
         
     leaf.filter(d => d.data.name == names[f_ind])
         .append("text")
-        .attr("x", (d) => (l.x0 + l.x1) / 2.0)
-        .attr("y", (d) => (l.y0 + l.y1) / 2.0)
-        .attr("dy", "0.5em")
-        .attr("text-anchor", "middle")
-        .attr("font-size", 15)
+        .attr("x", (d) => (l.x0 + d.value / bar_divisor))
+        .attr("y", (d) => l.y1)
+        .attr("dy", (d) => "-0.5em")
+        .attr("dx", (d) => "-0.25em")
+        .attr("text-anchor", "end")
+        .attr("font-size", 30)
         .attr("fill", "black")
-        .attr("font-family", "proxima-nova")
-        .text(d => d.data.name)
-        // .text(d => d.data.name.split(" ").slice(0, 2).join(" "))
+        .attr("font-family", "\"Source Sans 3\"")
+        .style("fill-opacity", 1.0)
+        .text(d => `$${format(d.value)}`)
+        .attr("weight", "bold")
+        
+    leaf.filter(d => d.data.name == names[f_ind])
+        .append("text")
+        // .attr("x", (d) => (l.x0 + l.x1) / 2.0)
+        .attr("x", (d) => (l.x0 + d.value / bar_divisor / 2.0))
+        .attr("y", (d) => (l.y0 + l.y1) / 2.0)
+        .attr("dy", "-0.5em")
+        .attr("text-anchor", "middle")
+        .attr("font-size", 30)
+        .attr("fill", "black")
+        .attr("font-family", "\"Source Sans 3\"")
+        .style("fill-opacity", 1.0)
+        // .text(d => d.data.name)
+        .raise()
+        .each(function(d) { 
+            const width = Math.max(0, d.value / bar_divisor);
+            const txt = d3.select(this);
+            const nl = wrapText(d.data.name, txt, width);
+        })
 
-        leaf.filter(d => d.data.name == names[f_ind]).transition().duration(duration)
+        leaf.filter(d => d.data.name == names[f_ind]).transition().duration(bar_duration)
             .attr("transform", `translate(0.0,0.0)`)
-            // .attr("x", -5800)
-            // .attr("y", 500)
 
+}
+
+
+let phase_1 = false;
+
+function bar_expand() {
+    const bars = leaf.filter(d => names.includes(d.data.name));    
+    const factor = 3.65; // from American Immigraetion Council, 265% increase in deetention budget
+    // https://www.americanimmigrationcouncil.org/press-release/congress-approves-unprecedented-funding-mass-detention-deportation-2025/
+    const money = 5317000000; // total to GEO,CC,DeRes
+
+    
+    if (phase_1) {
+        
+        bars.selectAll("rect").transition().duration(bar_expand_duration)
+            .attr("width", money / bar_divisor2 * factor)
+        // .style("fill", "#fee5a0")
+
+        bars.select("#label").transition().duration(bar_expand_duration)
+            .attr("x", 300 + (money / bar_divisor2 * factor) / 2.0)
+        
+        bars.select("#money").transition().duration(bar_expand_duration)
+           .attr("x", 300 + money / bar_divisor2 * factor)
+           .attr("font-size", 80)
+           .textTween(() => t => `$${format(money * (t * (factor - 1.0) + 1.0))}`)
+            // .attr("y", (820 + 230) / 2.0);
+
+        
+        phase_1 = false;
+        return;
+    }
+    // bars.selectAll("text").remove();
+    bars.selectAll("text").transition().duration(bar_expand_duration / 4.0)
+        .style("fill-opacity", 0.0)
+        .on("end", () => d3.select(this).remove());
+    
+
+    bars.each(function(d) {
+        const bar = d3.select(this);
+        // const new_bar = d3.select(this).clone(true);
+        // const money = d.data.value;
+
+        bar.selectAll("rect")
+            .transition().duration(bar_expand_duration / 2.0)
+            .style("fill", "#efb184ff")
+            .style("fill-opacity", 0.8)
+            .attr("height", 820-230)
+            .attr("y", 230)
+            .attr("x", 300)
+            .attr("width", money / bar_divisor2)
+            .on("end", function() {
+                bar.append("text")
+                    .attr("id","label")
+                    .attr("x", 300 + (money / bar_divisor2) / 2.0)
+                    .attr("y", (820 + 230) / 2.0)
+                    .attr("text-anchor", "middle")
+                    .attr("font-size", 40)
+                    .attr("fill", "black")
+                    .attr("font-family", "\"Source Sans 3\"")
+                    .style("fill-opacity", 0.0)
+                    .text("Combined")
+                    .transition().duration(bar_expand_duration / 8.0)
+                    .style("fill-opacity", 1.0);
+                
+                bar.append("text")
+                    .attr("id","money")
+                    .attr("x", 300 + money / bar_divisor2)
+                    .attr("y", 820)
+                    .attr("dy", "-0.5em")
+                    .attr("dx", "-0.25em")
+                    .attr("text-anchor", "end")
+                    .attr("font-size", 30)
+                    .attr("fill", "black")
+                    .attr("font-family", "\"Source Sans 3\"")
+                    .style("fill-opacity", 1.0)
+                    .text(`$${format(money)}`)
+                    .attr("weight", "bold");
+            });
+    });
+
+    phase_1 = true;
 }
 
 // [].slice
 
+// const duration = 1000;
+
 document.addEventListener("keydown", (e) => {
     if (e.key == "d") {
-        transition();
+        transition();    
+        top_svg.select("rect")
+            .transition().duration(bar_duration).style("fill-opacity", 0.0);
     }
     if (e.key == "f") {
+        if (f_index == 0)
+            top_svg.select("rect")
+                .transition().duration(bar_duration).style("fill-opacity", 0.7);
+
         untransition();
         f_index++;
         if (f_index == findex_map.length) {
             f_index = 0;
         }
+    }
+
+    if (e.key == "g") {
+        bar_expand();
     }
 });
