@@ -109,7 +109,8 @@ leaf.append("rect")
     .attr("height", (d) => d.y1 - d.y0)
     .style("stroke","black")
     .style("stroke-width",0.5)
-    .style("fill", (d) => ["#fee5a0", "#ffcf52", "#ffb803"][Math.floor(Math.random() * 3)])
+    // .style("fill", (d) => ["#fee5a0", "#ffcf52", "#ffb803"][Math.floor(Math.random() * 3)])
+    .style("fill", "#fee5a0")
     .style("fill-opacity", 0.9)
 
 leaf.filter(d => d.value > 410000000).append("text")
@@ -401,7 +402,7 @@ function bar_expand() {
 
         bar.selectAll("rect")
             .transition().duration(bar_expand_duration / 2.0)
-            .style("fill", "#efb184ff")
+            .style("fill", "#efb184")
             .style("fill-opacity", 0.8)
             .attr("height", 820-230)
             .attr("y", 230)

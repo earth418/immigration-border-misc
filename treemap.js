@@ -111,7 +111,8 @@ leaf.append("rect")
     .attr("height", (d) => d.y1 - d.y0)
     .style("stroke","black")
     .style("stroke-width",0.5)
-    .style("fill", (d) => ["#ffe3c8", "#ffecd7"][Math.floor(Math.random() * 2)])
+    // .style("fill", (d) => ["#ffe3c8", "#ffecd7"][Math.floor(Math.random() * 2)])
+    .style("fill", "#fee5a0")
     .style("fill-opacity", 1.0)
 
 // from claude

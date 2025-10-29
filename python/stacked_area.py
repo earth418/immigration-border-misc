@@ -7,9 +7,6 @@ import csv
 from matplotlib.font_manager import fontManager, FontProperties
 from pyfonts import load_google_font
 
-# path = "din-condensed-bold.ttf"
-# fontManager.addfont(path)
-# prop = FontProperties(fname=path)
 Lora = load_google_font("Lora",weight="bold")
 Source = load_google_font("Source Sans 3")
 SourceLight = load_google_font("Source Sans 3", weight="light")
